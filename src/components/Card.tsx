@@ -1,15 +1,17 @@
 import React from 'react';
 import './Card.css';
 
-interface CardProps {
+export interface CardProps {
 	date: string;
 	sentence: string;
 	meaning: string;
-	vocab: {
-		word: string;
-		definition: string;
-	};
+	vocab: Vocab[];
 	videoUrl: string;
+}
+
+interface Vocab {
+	word: string;
+	definition: string;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -27,9 +29,11 @@ const Card: React.FC<CardProps> = ({
 			<div className="vocab">
 				<strong>📘 단어 설명</strong>
 				<ul>
-					<li>
-						{vocab.word}: {vocab.definition}
-					</li>
+					{vocab.map((v, i) => (
+						<li key={i}>
+							{v.word}: {v.definition}
+						</li>
+					))}
 				</ul>
 			</div>
 			<a
