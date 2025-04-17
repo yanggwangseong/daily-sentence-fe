@@ -12,7 +12,7 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const today = new Date().toISOString().split('T')[0];
+				const today = new Date().toLocaleDateString('sv-SE');
 				const res = await fetch(`/api/sentences/days/${today}`);
 				const json = await res.json();
 				setData(json);
