@@ -1,0 +1,47 @@
+.footer {
+	background-color: #f8f9fa;
+	border-top: 1px solid #eee;
+	padding: 24px 16px;
+	margin-top: 40px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.footer-content {
+	width: 100%;
+	max-width: 100%;
+	margin: 0 auto;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.footer p {
+	margin: 8px 0;
+	color: #666;
+	font-size: 12px;
+	word-break: keep-all;
+	padding: 0 16px;
+}
+
+.copyright {
+	font-weight: 500;
+}
+
+.service-info,
+.github-info {
+	color: #888;
+}
+
+.contact {
+	margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+	.footer-content {
+		max-width: 768px;
+	}
+
+	.footer p {
+		padding: 0;
+	}
+}

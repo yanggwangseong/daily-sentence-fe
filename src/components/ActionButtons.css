@@ -1,0 +1,42 @@
+.action-buttons {
+	margin-top: 20px;
+}
+
+.button-group {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+}
+
+.action-button {
+	padding: 12px 24px;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.action-button.share {
+	background-color: #4b6bfb;
+	color: white;
+	box-shadow: 0 2px 4px rgba(75, 107, 251, 0.1);
+}
+
+.action-button.share:hover {
+	background-color: #3451db;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(75, 107, 251, 0.2);
+}
+
+.action-button.feedback {
+	background-color: white;
+	color: #4b6bfb;
+	border: 1px solid #4b6bfb;
+}
+
+.action-button.feedback:hover {
+	background-color: #f5f7ff;
+	transform: translateY(-1px);
+}

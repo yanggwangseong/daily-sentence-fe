@@ -1,0 +1,106 @@
+.daily-english-card {
+	background-color: white;
+	border-radius: 16px;
+	padding: 20px 16px;
+	margin: 0;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.date {
+	color: #666;
+	font-size: 14px;
+	margin-bottom: 20px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.sentence {
+	font-size: 22px;
+	margin: 20px 0;
+	line-height: 1.4;
+	color: #333;
+	word-break: keep-all;
+	overflow-wrap: break-word;
+}
+
+.meaning {
+	font-size: 17px;
+	color: #444;
+	margin: 20px 0;
+	word-break: keep-all;
+	overflow-wrap: break-word;
+}
+
+.vocab {
+	background-color: #f8f9fa;
+	padding: 16px;
+	border-radius: 12px;
+	margin: 24px 0;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.vocab strong {
+	display: block;
+	margin-bottom: 12px;
+	color: #333;
+	font-size: 15px;
+}
+
+.vocab ul {
+	margin: 0;
+	padding-left: 20px;
+	list-style-type: none;
+}
+
+.vocab li {
+	color: #555;
+	line-height: 1.6;
+	font-size: 15px;
+	position: relative;
+	padding-left: 8px;
+	word-break: keep-all;
+	overflow-wrap: break-word;
+}
+
+.vocab li:before {
+	content: '•';
+	position: absolute;
+	left: -12px;
+	color: #4b6bfb;
+}
+
+.video-link {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background-color: #4b6bfb;
+	color: white;
+	text-align: center;
+	padding: 16px;
+	border-radius: 12px;
+	text-decoration: none;
+	font-weight: 500;
+	font-size: 15px;
+	margin-top: 24px;
+	transition: all 0.2s ease;
+	width: 100%;
+	box-sizing: border-box;
+	box-shadow: 0 2px 4px rgba(75, 107, 251, 0.1);
+}
+
+.video-link:hover {
+	background-color: #3451db;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(75, 107, 251, 0.2);
+}
+
+@media (min-width: 768px) {
+	.daily-english-card {
+		padding: 24px;
+	}
+}
