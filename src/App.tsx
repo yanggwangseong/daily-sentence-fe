@@ -40,6 +40,15 @@ const App: React.FC = () => {
 		null,
 	);
 	const [isAnimating, setIsAnimating] = useState(false);
+	const [transitionState, setTransitionState] = useState<{
+		current: string;
+		prev: string;
+		next: string;
+	}>({
+		current: 'current-card',
+		prev: 'previous-card',
+		next: 'next-card',
+	});
 
 	const prevDate = getAdjacentDate(currentDate, -1);
 	const nextDate = getAdjacentDate(currentDate, 1);
@@ -114,12 +123,25 @@ const App: React.FC = () => {
 			setIsAnimating(true);
 			setPrevDirection('up');
 
+			// Set animation classes for the transition
+			setTransitionState({
+				current: 'card-moving-down',
+				prev: 'card-becoming-current-from-top',
+				next: 'next-card',
+			});
+
 			// Allow animation to start before changing data
 			setTimeout(() => {
 				setCurrentDate(prevDate);
 				prefetchAdjacentData(getAdjacentDate(prevDate, -1));
 
+				// Reset animation classes after transition
 				setTimeout(() => {
+					setTransitionState({
+						current: 'current-card',
+						prev: 'previous-card',
+						next: 'next-card',
+					});
 					setIsAnimating(false);
 					setPrevDirection(null);
 				}, 500); // Match CSS transition duration
@@ -140,12 +162,25 @@ const App: React.FC = () => {
 			setIsAnimating(true);
 			setPrevDirection('down');
 
+			// Set animation classes for the transition
+			setTransitionState({
+				current: 'card-moving-up',
+				prev: 'previous-card',
+				next: 'card-becoming-current-from-bottom',
+			});
+
 			// Allow animation to start before changing data
 			setTimeout(() => {
 				setCurrentDate(nextDate);
 				prefetchAdjacentData(getAdjacentDate(nextDate, 1));
 
+				// Reset animation classes after transition
 				setTimeout(() => {
+					setTransitionState({
+						current: 'current-card',
+						prev: 'previous-card',
+						next: 'next-card',
+					});
 					setIsAnimating(false);
 					setPrevDirection(null);
 				}, 500); // Match CSS transition duration
@@ -213,20 +248,35 @@ const App: React.FC = () => {
 
 	// Get appropriate class for previous card
 	const getPrevCardClass = () => {
-		let className = 'carousel-card previous-card';
-		if (isAnimating && prevDirection === 'down') {
-			className += ' card-entering-prev';
+		const baseClass = 'carousel-card';
+		if (isAnimating && prevDirection === 'up') {
+			return `${baseClass} ${transitionState.prev}`;
 		}
-		return className;
+		if (isAnimating && prevDirection === 'down') {
+			return `${baseClass} card-entering-prev`;
+		}
+		return `${baseClass} previous-card`;
 	};
 
 	// Get appropriate class for next card
 	const getNextCardClass = () => {
-		let className = 'carousel-card next-card';
-		if (isAnimating && prevDirection === 'up') {
-			className += ' card-entering-next';
+		const baseClass = 'carousel-card';
+		if (isAnimating && prevDirection === 'down') {
+			return `${baseClass} ${transitionState.next}`;
 		}
-		return className;
+		if (isAnimating && prevDirection === 'up') {
+			return `${baseClass} card-entering-next`;
+		}
+		return `${baseClass} next-card`;
+	};
+
+	// Get appropriate class for current card
+	const getCurrentCardClass = () => {
+		const baseClass = 'carousel-card';
+		if (isAnimating) {
+			return `${baseClass} ${transitionState.current}`;
+		}
+		return `${baseClass} current-card`;
 	};
 
 	return (
@@ -257,7 +307,7 @@ const App: React.FC = () => {
 						)}
 
 						{currentData && (
-							<div className="carousel-card current-card">
+							<div className={getCurrentCardClass()}>
 								<Card
 									date={currentData.date}
 									sentence={currentData.sentence}
