@@ -28,9 +28,47 @@ body {
 	box-sizing: border-box;
 }
 
+/* Card Carousel Styles */
+.card-carousel {
+	position: relative;
+	height: 500px; /* Adjust based on your card sizes */
+	overflow: hidden;
+	margin: 20px 0;
+}
+
+.carousel-card {
+	position: absolute;
+	width: 100%;
+	transition:
+		transform 0.5s ease,
+		opacity 0.5s ease;
+}
+
+.previous-card {
+	transform: translateY(-70%) scale(0.85);
+	opacity: 0.5;
+	z-index: 1;
+}
+
+.current-card {
+	transform: translateY(0) scale(1);
+	opacity: 1;
+	z-index: 2;
+}
+
+.next-card {
+	transform: translateY(70%) scale(0.85);
+	opacity: 0.5;
+	z-index: 1;
+}
+
 @media (min-width: 768px) {
 	.main-content {
 		max-width: 768px;
 		padding: 16px;
+	}
+
+	.card-carousel {
+		height: 600px; /* Adjust for desktop */
 	}
 }
