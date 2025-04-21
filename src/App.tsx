@@ -36,27 +36,43 @@ const App: React.FC = () => {
 	const carouselRef = useRef<HTMLDivElement>(null);
 	const [isScrolling, setIsScrolling] = useState(false);
 	const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+	const [prevDirection, setPrevDirection] = useState<'up' | 'down' | null>(
+		null,
+	);
+	const [isAnimating, setIsAnimating] = useState(false);
 
 	const prevDate = getAdjacentDate(currentDate, -1);
 	const nextDate = getAdjacentDate(currentDate, 1);
+	const prevTwoDaysDate = getAdjacentDate(currentDate, -2);
+	const nextTwoDaysDate = getAdjacentDate(currentDate, 2);
 
-	// Pre-fetch several past days on initial load
+	// Pre-fetch several past and future days on initial load
 	useEffect(() => {
-		const fetchPastDays = async () => {
+		const fetchAdjacentDays = async () => {
 			const date = today;
-			// Prefetch 7 days before today
-			for (let i = 1; i <= 7; i++) {
+			// Prefetch 10 days before today
+			for (let i = 1; i <= 10; i++) {
 				const pastDate = getAdjacentDate(date, -i);
 				queryClient.prefetchQuery({
 					queryKey: ['sentence', pastDate],
 					queryFn: () => fetchSentenceByDate(pastDate),
 				});
 			}
+
+			// Prefetch 3 days after today (if they exist)
+			for (let i = 1; i <= 3; i++) {
+				const futureDate = getAdjacentDate(date, i);
+				queryClient.prefetchQuery({
+					queryKey: ['sentence', futureDate],
+					queryFn: () => fetchSentenceByDate(futureDate),
+				});
+			}
 		};
 
-		fetchPastDays();
+		fetchAdjacentDays();
 	}, [queryClient, today]);
 
+	// Load current and adjacent cards
 	const { data: currentData, isLoading: isCurrentLoading } = useQuery({
 		queryKey: ['sentence', currentDate],
 		queryFn: () => fetchSentenceByDate(currentDate),
@@ -72,6 +88,19 @@ const App: React.FC = () => {
 		queryFn: () => fetchSentenceByDate(nextDate),
 	});
 
+	// Prefetch two days away in both directions
+	useQuery({
+		queryKey: ['sentence', prevTwoDaysDate],
+		queryFn: () => fetchSentenceByDate(prevTwoDaysDate),
+		enabled: !!prevData,
+	});
+
+	useQuery({
+		queryKey: ['sentence', nextTwoDaysDate],
+		queryFn: () => fetchSentenceByDate(nextTwoDaysDate),
+		enabled: !!nextData,
+	});
+
 	const prefetchAdjacentData = (date: string) => {
 		queryClient.prefetchQuery({
 			queryKey: ['sentence', date],
@@ -80,39 +109,61 @@ const App: React.FC = () => {
 	};
 
 	const handlePrevCard = () => {
-		if (prevData && !isScrolling) {
+		if (prevData && !isScrolling && !isAnimating) {
 			setIsScrolling(true);
-			setCurrentDate(prevDate);
-			prefetchAdjacentData(getAdjacentDate(prevDate, -1));
+			setIsAnimating(true);
+			setPrevDirection('up');
 
-			if (scrollTimeout.current) {
-				clearTimeout(scrollTimeout.current);
-			}
-			scrollTimeout.current = setTimeout(() => {
-				setIsScrolling(false);
-			}, 500); // Matches the transition time in CSS
+			// Allow animation to start before changing data
+			setTimeout(() => {
+				setCurrentDate(prevDate);
+				prefetchAdjacentData(getAdjacentDate(prevDate, -1));
+
+				setTimeout(() => {
+					setIsAnimating(false);
+					setPrevDirection(null);
+				}, 500); // Match CSS transition duration
+
+				if (scrollTimeout.current) {
+					clearTimeout(scrollTimeout.current);
+				}
+				scrollTimeout.current = setTimeout(() => {
+					setIsScrolling(false);
+				}, 700); // Slightly longer to ensure everything completes
+			}, 50);
 		}
 	};
 
 	const handleNextCard = () => {
-		if (nextData && !isScrolling) {
+		if (nextData && !isScrolling && !isAnimating) {
 			setIsScrolling(true);
-			setCurrentDate(nextDate);
-			prefetchAdjacentData(getAdjacentDate(nextDate, 1));
+			setIsAnimating(true);
+			setPrevDirection('down');
 
-			if (scrollTimeout.current) {
-				clearTimeout(scrollTimeout.current);
-			}
-			scrollTimeout.current = setTimeout(() => {
-				setIsScrolling(false);
-			}, 500); // Matches the transition time in CSS
+			// Allow animation to start before changing data
+			setTimeout(() => {
+				setCurrentDate(nextDate);
+				prefetchAdjacentData(getAdjacentDate(nextDate, 1));
+
+				setTimeout(() => {
+					setIsAnimating(false);
+					setPrevDirection(null);
+				}, 500); // Match CSS transition duration
+
+				if (scrollTimeout.current) {
+					clearTimeout(scrollTimeout.current);
+				}
+				scrollTimeout.current = setTimeout(() => {
+					setIsScrolling(false);
+				}, 700); // Slightly longer to ensure everything completes
+			}, 50);
 		}
 	};
 
 	// Touch handling for swipe
 	const [touchStart, setTouchStart] = useState<number | null>(null);
 	const [touchEnd, setTouchEnd] = useState<number | null>(null);
-	const minSwipeDistance = 50;
+	const minSwipeDistance = 40; // Reduced for better sensitivity
 
 	const onTouchStart = (e: React.TouchEvent) => {
 		setTouchEnd(null);
@@ -146,7 +197,7 @@ const App: React.FC = () => {
 		// Prevent default to avoid scrolling the page
 		e.preventDefault();
 
-		if (isScrolling) return;
+		if (isScrolling || isAnimating) return;
 
 		// Check for scroll direction
 		if (e.deltaY < 0) {
@@ -158,6 +209,24 @@ const App: React.FC = () => {
 			console.log('Scrolling down, going to next card');
 			handleNextCard();
 		}
+	};
+
+	// Get appropriate class for previous card
+	const getPrevCardClass = () => {
+		let className = 'carousel-card previous-card';
+		if (isAnimating && prevDirection === 'down') {
+			className += ' card-entering-prev';
+		}
+		return className;
+	};
+
+	// Get appropriate class for next card
+	const getNextCardClass = () => {
+		let className = 'carousel-card next-card';
+		if (isAnimating && prevDirection === 'up') {
+			className += ' card-entering-next';
+		}
+		return className;
 	};
 
 	return (
@@ -176,7 +245,7 @@ const App: React.FC = () => {
 						onWheel={handleWheel}
 					>
 						{prevData && (
-							<div className="carousel-card previous-card">
+							<div className={getPrevCardClass()}>
 								<Card
 									date={prevData.date}
 									sentence={prevData.sentence}
@@ -200,7 +269,7 @@ const App: React.FC = () => {
 						)}
 
 						{nextData && (
-							<div className="carousel-card next-card">
+							<div className={getNextCardClass()}>
 								<Card
 									date={nextData.date}
 									sentence={nextData.sentence}
