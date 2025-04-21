@@ -1,3 +1,11 @@
+## 기술적 선택 요소
+
+- Tanstack Query
+  - Infinite Query 기능을 빠르게 개발하고 Server State 관리를 용이하기 위해서 도입 했습니다.
+- date-fns
+  - Date 불변성이 왜 중요할까요?
+  - dayjs 와 date-fns 선택은 둘다 불변성을 지원하지 때문에 취향 차이이며 저는 익숙한 date-fns를 선택 했습니다.
+
 # React BoilerPlate
 
 - typescript v5.2.2
