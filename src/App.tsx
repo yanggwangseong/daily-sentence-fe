@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -18,6 +18,10 @@ const getAdjacentDate = (date: string, days: number): string => {
 const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
 	try {
 		const res = await fetch(`/api/sentences/days/${date}`);
+		if (!res.ok) {
+			console.log(`${date} 데이터 없음: ${res.status}`);
+			return null;
+		}
 		return await res.json();
 	} catch (error) {
 		console.error(`${date} 데이터 가져오기 실패:`, error);
@@ -32,6 +36,23 @@ const App: React.FC = () => {
 
 	const prevDate = getAdjacentDate(currentDate, -1);
 	const nextDate = getAdjacentDate(currentDate, 1);
+
+	// Pre-fetch several past days on initial load
+	useEffect(() => {
+		const fetchPastDays = async () => {
+			const date = today;
+			// Prefetch 7 days before today
+			for (let i = 1; i <= 7; i++) {
+				const pastDate = getAdjacentDate(date, -i);
+				queryClient.prefetchQuery({
+					queryKey: ['sentence', pastDate],
+					queryFn: () => fetchSentenceByDate(pastDate),
+				});
+			}
+		};
+
+		fetchPastDays();
+	}, [queryClient, today]);
 
 	const { data: currentData, isLoading: isCurrentLoading } = useQuery({
 		queryKey: ['sentence', currentDate],
@@ -58,7 +79,6 @@ const App: React.FC = () => {
 	const handlePrevCard = () => {
 		if (prevData) {
 			setCurrentDate(prevDate);
-
 			prefetchAdjacentData(getAdjacentDate(prevDate, -1));
 		}
 	};
@@ -66,11 +86,11 @@ const App: React.FC = () => {
 	const handleNextCard = () => {
 		if (nextData) {
 			setCurrentDate(nextDate);
-
 			prefetchAdjacentData(getAdjacentDate(nextDate, 1));
 		}
 	};
 
+	// Touch handling for swipe
 	const [touchStart, setTouchStart] = useState<number | null>(null);
 	const [touchEnd, setTouchEnd] = useState<number | null>(null);
 	const minSwipeDistance = 50;
@@ -91,9 +111,13 @@ const App: React.FC = () => {
 		const isSwipeDown = distance < -minSwipeDistance;
 		const isSwipeUp = distance > minSwipeDistance;
 
+		console.log('Swipe distance:', distance);
+
 		if (isSwipeDown) {
+			console.log('Swiped down, going to previous card');
 			handlePrevCard();
 		} else if (isSwipeUp) {
+			console.log('Swiped up, going to next card');
 			handleNextCard();
 		}
 	};
@@ -148,6 +172,22 @@ const App: React.FC = () => {
 						)}
 					</div>
 				)}
+				<div className="navigation-buttons">
+					<button
+						onClick={handlePrevCard}
+						disabled={!prevData}
+						className="nav-button prev-button"
+					>
+						이전
+					</button>
+					<button
+						onClick={handleNextCard}
+						disabled={!nextData}
+						className="nav-button next-button"
+					>
+						다음
+					</button>
+				</div>
 				<ActionButtons />
 			</main>
 			<Footer />

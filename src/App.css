@@ -62,6 +62,33 @@ body {
 	z-index: 1;
 }
 
+/* Navigation Buttons */
+.navigation-buttons {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px 0;
+}
+
+.nav-button {
+	padding: 10px 20px;
+	background-color: #4b70e2;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-weight: bold;
+	transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+	background-color: #3a5bbf;
+}
+
+.nav-button:disabled {
+	background-color: #cccccc;
+	cursor: not-allowed;
+}
+
 @media (min-width: 768px) {
 	.main-content {
 		max-width: 768px;
