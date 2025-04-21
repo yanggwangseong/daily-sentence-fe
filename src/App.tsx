@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -33,6 +33,9 @@ const App: React.FC = () => {
 	const today = new Date().toLocaleDateString('sv-SE');
 	const [currentDate, setCurrentDate] = useState<string>(today);
 	const queryClient = useQueryClient();
+	const carouselRef = useRef<HTMLDivElement>(null);
+	const [isScrolling, setIsScrolling] = useState(false);
+	const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
 	const prevDate = getAdjacentDate(currentDate, -1);
 	const nextDate = getAdjacentDate(currentDate, 1);
@@ -77,16 +80,32 @@ const App: React.FC = () => {
 	};
 
 	const handlePrevCard = () => {
-		if (prevData) {
+		if (prevData && !isScrolling) {
+			setIsScrolling(true);
 			setCurrentDate(prevDate);
 			prefetchAdjacentData(getAdjacentDate(prevDate, -1));
+
+			if (scrollTimeout.current) {
+				clearTimeout(scrollTimeout.current);
+			}
+			scrollTimeout.current = setTimeout(() => {
+				setIsScrolling(false);
+			}, 500); // Matches the transition time in CSS
 		}
 	};
 
 	const handleNextCard = () => {
-		if (nextData) {
+		if (nextData && !isScrolling) {
+			setIsScrolling(true);
 			setCurrentDate(nextDate);
 			prefetchAdjacentData(getAdjacentDate(nextDate, 1));
+
+			if (scrollTimeout.current) {
+				clearTimeout(scrollTimeout.current);
+			}
+			scrollTimeout.current = setTimeout(() => {
+				setIsScrolling(false);
+			}, 500); // Matches the transition time in CSS
 		}
 	};
 
@@ -122,6 +141,25 @@ const App: React.FC = () => {
 		}
 	};
 
+	// Handle mouse wheel scrolling
+	const handleWheel = (e: React.WheelEvent) => {
+		// Prevent default to avoid scrolling the page
+		e.preventDefault();
+
+		if (isScrolling) return;
+
+		// Check for scroll direction
+		if (e.deltaY < 0) {
+			// Scrolling up - show previous card
+			console.log('Scrolling up, going to previous card');
+			handlePrevCard();
+		} else if (e.deltaY > 0) {
+			// Scrolling down - show next card
+			console.log('Scrolling down, going to next card');
+			handleNextCard();
+		}
+	};
+
 	return (
 		<div className="app">
 			<Header />
@@ -131,9 +169,11 @@ const App: React.FC = () => {
 				) : (
 					<div
 						className="card-carousel"
+						ref={carouselRef}
 						onTouchStart={onTouchStart}
 						onTouchMove={onTouchMove}
 						onTouchEnd={onTouchEnd}
+						onWheel={handleWheel}
 					>
 						{prevData && (
 							<div className="carousel-card previous-card">
@@ -170,24 +210,11 @@ const App: React.FC = () => {
 								/>
 							</div>
 						)}
+
+						{prevData && <div className="scroll-indicator scroll-up"></div>}
+						{nextData && <div className="scroll-indicator scroll-down"></div>}
 					</div>
 				)}
-				<div className="navigation-buttons">
-					<button
-						onClick={handlePrevCard}
-						disabled={!prevData}
-						className="nav-button prev-button"
-					>
-						이전
-					</button>
-					<button
-						onClick={handleNextCard}
-						disabled={!nextData}
-						className="nav-button next-button"
-					>
-						다음
-					</button>
-				</div>
 				<ActionButtons />
 			</main>
 			<Footer />
