@@ -26,6 +26,7 @@ const isFutureDate = (dateStr: string): boolean => {
 };
 
 const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
+	console.log('fetch date', date);
 	try {
 		const res = await fetch(`/api/sentences/days/${date}`);
 		if (!res.ok) {
