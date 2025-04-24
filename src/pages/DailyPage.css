@@ -19,7 +19,6 @@
 	justify-content: center;
 	align-items: center;
 	overflow: hidden;
-	perspective: 1500px;
 }
 
 /* Base style for cards */
@@ -30,120 +29,123 @@
 	background-color: white;
 	border-radius: 16px;
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-	transition:
-		transform 0.7s cubic-bezier(0.33, 1, 0.68, 1),
-		opacity 0.5s ease;
-	will-change: transform, opacity;
+	transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+	will-change: transform;
 	backface-visibility: hidden;
 	pointer-events: none;
 	opacity: 0;
 	z-index: 0;
-	transform: scale(0.92) translateY(100%);
+	transform: translateY(100%);
 }
 
 /* Current card (centered) */
 .current-card {
-	transform: scale(1) translateY(0);
+	transform: translateY(0);
 	opacity: 1;
 	z-index: 3;
 	pointer-events: auto;
 }
 
-/* Previous card (top, behind) */
-.previous-card {
-	transform: scale(0.92) translateY(-100%);
-	opacity: 0.6;
-	z-index: 2;
-	filter: blur(0.6px);
-}
-
-/* Next card (bottom, behind) */
+/* Previous and next cards (hidden) */
+.previous-card,
 .next-card {
-	transform: scale(0.92) translateY(100%);
-	opacity: 0.6;
-	z-index: 2;
-	filter: blur(0.6px);
+	opacity: 0;
+	transform: translateY(-100%);
+	z-index: -1;
 }
 
 /* When animating up (scrolling to next card) */
 .card-moving-up {
-	animation: moveUpToBack 0.8s ease forwards;
+	animation: moveUp 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 .card-becoming-current-from-bottom {
-	animation: riseUpToCurrent 0.8s ease forwards;
+	animation: slideInFromBottom 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* When animating down (scrolling to previous card) */
 .card-moving-down {
-	animation: moveDownToBack 0.8s ease forwards;
+	animation: moveDown 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 .card-becoming-current-from-top {
-	animation: fallDownToCurrent 0.8s ease forwards;
+	animation: slideInFromTop 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* Animations */
-@keyframes moveUpToBack {
+@keyframes moveUp {
 	from {
-		transform: translateY(0) scale(1);
+		transform: translateY(0);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(-100%) scale(0.92);
-		opacity: 0.6;
-		filter: blur(0.6px);
+		transform: translateY(-100%);
+		opacity: 0;
 	}
 }
 
-@keyframes moveDownToBack {
+@keyframes moveDown {
 	from {
-		transform: translateY(0) scale(1);
+		transform: translateY(0);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(100%) scale(0.92);
-		opacity: 0.6;
-		filter: blur(0.6px);
+		transform: translateY(100%);
+		opacity: 0;
 	}
 }
 
-@keyframes riseUpToCurrent {
+@keyframes slideInFromBottom {
 	from {
-		transform: translateY(100%) scale(0.92);
-		opacity: 0.6;
-		filter: blur(0.6px);
+		transform: translateY(100%);
+		opacity: 0;
 	}
 	to {
-		transform: translateY(0) scale(1);
+		transform: translateY(0);
 		opacity: 1;
-		filter: blur(0);
 	}
 }
 
-@keyframes fallDownToCurrent {
+@keyframes slideInFromTop {
 	from {
-		transform: translateY(-100%) scale(0.92);
-		opacity: 0.6;
-		filter: blur(0.6px);
+		transform: translateY(-100%);
+		opacity: 0;
 	}
 	to {
-		transform: translateY(0) scale(1);
+		transform: translateY(0);
 		opacity: 1;
-		filter: blur(0);
 	}
 }
 
 /* Scroll indicators */
+.scroll-indicator-container {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 100%;
+	pointer-events: none;
+	z-index: 10;
+}
+
 .scroll-indicator {
 	position: absolute;
-	width: 30px;
-	height: 30px;
 	left: 50%;
 	transform: translateX(-50%);
-	opacity: 0.7;
+	width: 30px;
+	height: 30px;
+	opacity: 0;
 	transition: opacity 0.3s ease;
-	z-index: 10;
+	animation: fadeInOut 2s infinite;
+}
+
+@keyframes fadeInOut {
+	0%,
+	100% {
+		opacity: 0.2;
+	}
+	50% {
+		opacity: 0.7;
+	}
 }
 
 .scroll-up {
@@ -151,7 +153,6 @@
 	border-top: 3px solid #4b70e2;
 	border-left: 3px solid #4b70e2;
 	transform: translateX(-50%) rotate(45deg);
-	animation: pulseUp 2s infinite;
 }
 
 .scroll-down {
@@ -159,31 +160,6 @@
 	border-bottom: 3px solid #4b70e2;
 	border-right: 3px solid #4b70e2;
 	transform: translateX(-50%) rotate(45deg);
-	animation: pulseDown 2s infinite;
-}
-
-@keyframes pulseUp {
-	0%,
-	100% {
-		transform: translateX(-50%) rotate(45deg) translateY(0);
-		opacity: 0.7;
-	}
-	50% {
-		transform: translateX(-50%) rotate(45deg) translateY(-5px);
-		opacity: 1;
-	}
-}
-
-@keyframes pulseDown {
-	0%,
-	100% {
-		transform: translateX(-50%) rotate(45deg) translateY(0);
-		opacity: 0.7;
-	}
-	50% {
-		transform: translateX(-50%) rotate(45deg) translateY(5px);
-		opacity: 1;
-	}
 }
 
 /* Responsive */

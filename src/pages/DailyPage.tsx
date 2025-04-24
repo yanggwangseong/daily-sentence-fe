@@ -174,15 +174,15 @@ const DailyPage: React.FC = () => {
 					});
 					setIsAnimating(false);
 					setPrevDirection(null);
-				}, 850); // Match CSS transition duration
+				}, 500); // Match CSS animation duration
 
 				if (scrollTimeout.current) {
 					clearTimeout(scrollTimeout.current);
 				}
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
-				}, 1000); // Slightly longer to ensure everything completes
-			}, 20); // Reduced delay for smoother start
+				}, 600); // Slightly longer to ensure everything completes
+			}, 20); // Keep short delay for smooth start
 		}
 	};
 
@@ -213,15 +213,15 @@ const DailyPage: React.FC = () => {
 					});
 					setIsAnimating(false);
 					setPrevDirection(null);
-				}, 700); // Match CSS transition duration
+				}, 500); // Match CSS animation duration
 
 				if (scrollTimeout.current) {
 					clearTimeout(scrollTimeout.current);
 				}
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
-				}, 900); // Slightly longer to ensure everything completes
-			}, 30); // Reduced delay for smoother start
+				}, 600); // Slightly longer to ensure everything completes
+			}, 20); // Keep short delay for smooth start
 		}
 	};
 
@@ -339,6 +339,7 @@ const DailyPage: React.FC = () => {
 						onTouchEnd={onTouchEnd}
 						onWheel={handleWheel}
 					>
+						{/* Previous card (hidden but needed for animation) */}
 						{prevData && (
 							<div className={getPrevCardClass()}>
 								<Card
@@ -351,6 +352,7 @@ const DailyPage: React.FC = () => {
 							</div>
 						)}
 
+						{/* Current visible card */}
 						{currentData && (
 							<div className={getCurrentCardClass()}>
 								<Card
@@ -363,6 +365,7 @@ const DailyPage: React.FC = () => {
 							</div>
 						)}
 
+						{/* Next card (hidden but needed for animation) */}
 						{canShowNextCard() && (
 							<div className={getNextCardClass()}>
 								<Card
@@ -375,10 +378,13 @@ const DailyPage: React.FC = () => {
 							</div>
 						)}
 
-						{prevData && <div className="scroll-indicator scroll-up"></div>}
-						{canShowNextCard() && (
-							<div className="scroll-indicator scroll-down"></div>
-						)}
+						{/* Scroll indicators container */}
+						<div className="scroll-indicator-container">
+							{prevData && <div className="scroll-indicator scroll-up"></div>}
+							{canShowNextCard() && (
+								<div className="scroll-indicator scroll-down"></div>
+							)}
+						</div>
 					</div>
 				)}
 			</main>
