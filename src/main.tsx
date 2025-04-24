@@ -141,6 +141,16 @@ const RouteTracker = () => {
 	return null;
 };
 
+const SetupTracker = () => {
+	useEffect(() => {
+		track('Debug Setup Ping', {
+			triggered_from: 'SetupTracker useEffect',
+		});
+	}, []);
+
+	return null;
+};
+
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -155,12 +165,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 		<QueryClientProvider client={queryClient}>
 			<BrowserRouter>
 				<RouteTracker />
+				<SetupTracker />
 				<App />
 			</BrowserRouter>
 		</QueryClientProvider>
 	</React.StrictMode>,
 );
-
-track('Debug Setup Ping', {
-	triggered_from: 'main',
-});
