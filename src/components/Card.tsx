@@ -21,10 +21,23 @@ const Card: React.FC<CardProps> = ({
 	vocab,
 	videoUrl,
 }) => {
+	// Check if the date is today
+	const isToday = (dateString: string): boolean => {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // Reset hours to compare dates only
+		const cardDate = new Date(dateString);
+		return today.getTime() === cardDate.getTime();
+	};
+
+	const todayFlag = isToday(date);
+
 	return (
 		<div className="daily-english-card">
 			<div className="card-header">
-				<p className="date">📅 {date}</p>
+				<div className="date-container">
+					<p className="date">📅 {date}</p>
+					{todayFlag && <span className="today-badge">Today</span>}
+				</div>
 				<h2 className="sentence">💬 "{sentence}"</h2>
 				<p className="meaning">👉 {meaning}</p>
 			</div>

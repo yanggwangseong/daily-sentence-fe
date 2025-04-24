@@ -30,6 +30,12 @@
 	margin: 4px 0;
 }
 
+.date-container {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
 .date {
 	color: #666;
 	font-size: 14px;
@@ -37,6 +43,29 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
+}
+
+.today-badge {
+	background: linear-gradient(135deg, #4b6bfb 0%, #6b4bfb 100%);
+	color: white;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 3px 8px;
+	border-radius: 30px;
+	box-shadow: 0 2px 6px rgba(75, 107, 251, 0.3);
+	animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(75, 107, 251, 0.4);
+	}
+	70% {
+		box-shadow: 0 0 0 6px rgba(75, 107, 251, 0);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(75, 107, 251, 0);
+	}
 }
 
 .sentence {

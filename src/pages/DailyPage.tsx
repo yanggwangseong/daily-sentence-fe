@@ -38,11 +38,15 @@ const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
 };
 
 const DailyPage: React.FC = () => {
-	const today = new Date().toLocaleDateString('sv-SE');
+	// Get today's date in local timezone, ensuring we get the full day properly
+	const today = new Date();
+	today.setHours(9, 0, 0, 0); // Set to 9 AM to avoid timezone issues
+	const todayStr = today.toLocaleDateString('sv-SE');
+
 	const [searchParams] = useSearchParams();
 	// Check if date parameter exists in the URL
 	const dateParam = searchParams.get('date');
-	const [currentDate, setCurrentDate] = useState<string>(dateParam || today);
+	const [currentDate, setCurrentDate] = useState<string>(dateParam || todayStr);
 
 	const queryClient = useQueryClient();
 	const carouselRef = useRef<HTMLDivElement>(null);
@@ -163,15 +167,15 @@ const DailyPage: React.FC = () => {
 					});
 					setIsAnimating(false);
 					setPrevDirection(null);
-				}, 700); // Match CSS transition duration
+				}, 850); // Match CSS transition duration
 
 				if (scrollTimeout.current) {
 					clearTimeout(scrollTimeout.current);
 				}
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
-				}, 900); // Slightly longer to ensure everything completes
-			}, 30); // Reduced delay for smoother start
+				}, 1000); // Slightly longer to ensure everything completes
+			}, 20); // Reduced delay for smoother start
 		}
 	};
 
@@ -294,6 +298,13 @@ const DailyPage: React.FC = () => {
 		return `${baseClass} next-card`;
 	};
 
+	// Check if we can show the next card
+	const canShowNextCard = () => {
+		return (
+			nextData != null && (!isFutureDate(nextDate) || nextDate === todayStr)
+		);
+	};
+
 	// Get appropriate class for current card
 	const getCurrentCardClass = () => {
 		const baseClass = 'carousel-card';
@@ -342,20 +353,20 @@ const DailyPage: React.FC = () => {
 							</div>
 						)}
 
-						{nextData && !isFutureDate(nextDate) && (
+						{canShowNextCard() && (
 							<div className={getNextCardClass()}>
 								<Card
-									date={nextData.date}
-									sentence={nextData.sentence}
-									meaning={nextData.meaning}
-									vocab={nextData.vocab}
-									videoUrl={nextData.videoUrl}
+									date={nextData!.date}
+									sentence={nextData!.sentence}
+									meaning={nextData!.meaning}
+									vocab={nextData!.vocab}
+									videoUrl={nextData!.videoUrl}
 								/>
 							</div>
 						)}
 
 						{prevData && <div className="scroll-indicator scroll-up"></div>}
-						{nextData && !isFutureDate(nextDate) && (
+						{canShowNextCard() && (
 							<div className="scroll-indicator scroll-down"></div>
 						)}
 					</div>

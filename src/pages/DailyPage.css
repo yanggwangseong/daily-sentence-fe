@@ -16,13 +16,18 @@
 	overflow: visible; /* Allow cards to be visible outside of the container */
 	margin: 20px 0;
 	touch-action: pan-x; /* Disable browser's vertical scroll handling on touch */
-	perspective: 1500px; /* Enhance 3D perspective for better depth */
+	perspective: 1800px; /* Enhance 3D perspective for better depth */
 }
 
 .carousel-card {
 	position: absolute;
 	width: 100%;
-	transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); /* More fluid easing */
+	transition:
+		transform 0.85s cubic-bezier(0.33, 1, 0.68, 1),
+		opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+		filter 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+		border-radius 0.5s ease,
+		box-shadow 0.5s ease; /* More refined transitions */
 	left: 0;
 	right: 0;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
@@ -30,7 +35,7 @@
 	background-color: white;
 	overflow: hidden;
 	backface-visibility: hidden; /* Prevent flickering during animations */
-	will-change: transform, opacity; /* Optimize for animations */
+	will-change: transform, opacity, filter; /* Optimize for animations */
 	height: auto;
 	transform-origin: center;
 }
@@ -69,21 +74,29 @@
 
 /* Entering animations */
 .card-entering-prev {
-	animation: slideFromTop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation: slideFromTop 0.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 .card-entering-next {
-	animation: slideFromBottom 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation: slideFromBottom 0.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 @keyframes slideFromTop {
-	from {
-		transform: translateY(-150%) scale(0.85);
+	0% {
+		transform: translateY(-180%) scale(0.85);
 		opacity: 0;
-		filter: blur(1px);
+		filter: blur(1.5px);
 		box-shadow: 0 -6px 15px rgba(0, 0, 0, 0.07);
 	}
-	to {
+	30% {
+		opacity: 0.4;
+		filter: blur(1px);
+	}
+	60% {
+		transform: translateY(-100%) scale(0.9);
+		opacity: 0.6;
+	}
+	100% {
 		transform: translateY(-80%) scale(0.92);
 		opacity: 0.75;
 		filter: blur(0.5px);
@@ -92,13 +105,21 @@
 }
 
 @keyframes slideFromBottom {
-	from {
-		transform: translateY(150%) scale(0.85);
+	0% {
+		transform: translateY(180%) scale(0.85);
 		opacity: 0;
-		filter: blur(1px);
+		filter: blur(1.5px);
 		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
 	}
-	to {
+	30% {
+		opacity: 0.4;
+		filter: blur(1px);
+	}
+	60% {
+		transform: translateY(60%) scale(0.9);
+		opacity: 0.6;
+	}
+	100% {
 		transform: translateY(20%) scale(0.92);
 		opacity: 0.75;
 		filter: blur(0.5px);
@@ -160,31 +181,42 @@
 
 /* Add card transition animations */
 .card-moving-up {
-	animation: moveUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation: moveUp 0.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 .card-moving-down {
-	animation: moveDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation: moveDown 0.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 .card-becoming-current-from-top {
-	animation: becomingCurrentFromTop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation: becomingCurrentFromTop 0.85s cubic-bezier(0.33, 1, 0.68, 1)
+		forwards;
 }
 
 .card-becoming-current-from-bottom {
-	animation: becomingCurrentFromBottom 0.7s cubic-bezier(0.16, 1, 0.3, 1)
+	animation: becomingCurrentFromBottom 0.85s cubic-bezier(0.33, 1, 0.68, 1)
 		forwards;
 }
 
 @keyframes moveUp {
-	from {
+	0% {
 		transform: translateY(-50%) scale(1);
 		opacity: 1;
 		filter: blur(0);
 		border-radius: 16px;
 		z-index: 3;
 	}
-	to {
+	30% {
+		transform: translateY(-20%) scale(0.98);
+		opacity: 0.9;
+		filter: blur(0.2px);
+	}
+	70% {
+		border-top-left-radius: 25px;
+		border-top-right-radius: 25px;
+		z-index: 2.5;
+	}
+	100% {
 		transform: translateY(20%) scale(0.92);
 		opacity: 0.75;
 		filter: blur(0.5px);
@@ -196,14 +228,24 @@
 }
 
 @keyframes moveDown {
-	from {
+	0% {
 		transform: translateY(-50%) scale(1);
 		opacity: 1;
 		filter: blur(0);
 		border-radius: 16px;
 		z-index: 3;
 	}
-	to {
+	30% {
+		transform: translateY(-65%) scale(0.98);
+		opacity: 0.9;
+		filter: blur(0.2px);
+	}
+	70% {
+		border-bottom-left-radius: 25px;
+		border-bottom-right-radius: 25px;
+		z-index: 1.5;
+	}
+	100% {
 		transform: translateY(-80%) scale(0.92);
 		opacity: 0.75;
 		filter: blur(0.5px);
@@ -215,7 +257,7 @@
 }
 
 @keyframes becomingCurrentFromTop {
-	from {
+	0% {
 		transform: translateY(-110%) scale(0.9);
 		opacity: 0.6;
 		filter: blur(0.8px);
@@ -225,9 +267,18 @@
 		box-shadow: 0 -6px 15px rgba(0, 0, 0, 0.07);
 	}
 	30% {
+		transform: translateY(-80%) scale(0.95);
 		opacity: 0.75;
+		filter: blur(0.6px);
 	}
-	to {
+	60% {
+		transform: translateY(-60%) scale(0.98);
+		border-radius: 20px;
+		opacity: 0.9;
+		filter: blur(0.3px);
+		z-index: 2;
+	}
+	100% {
 		transform: translateY(-50%) scale(1);
 		opacity: 1;
 		filter: blur(0);
@@ -238,7 +289,7 @@
 }
 
 @keyframes becomingCurrentFromBottom {
-	from {
+	0% {
 		transform: translateY(50%) scale(0.9);
 		opacity: 0.6;
 		filter: blur(0.8px);
@@ -248,9 +299,18 @@
 		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
 	}
 	30% {
+		transform: translateY(20%) scale(0.95);
 		opacity: 0.75;
+		filter: blur(0.6px);
 	}
-	to {
+	60% {
+		transform: translateY(-30%) scale(0.98);
+		border-radius: 20px;
+		opacity: 0.9;
+		filter: blur(0.3px);
+		z-index: 2.5;
+	}
+	100% {
 		transform: translateY(-50%) scale(1);
 		opacity: 1;
 		filter: blur(0);
