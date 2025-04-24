@@ -23,10 +23,28 @@ const Card: React.FC<CardProps> = ({
 }) => {
 	// Check if the date is today
 	const isToday = (dateString: string): boolean => {
-		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Reset hours to compare dates only
-		const cardDate = new Date(dateString);
-		return today.getTime() === cardDate.getTime();
+		try {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0); // Reset hours to compare dates only
+
+			// 날짜 문자열이 비어있거나 유효하지 않은 경우 처리
+			if (!dateString || dateString.trim() === '') {
+				return false;
+			}
+
+			const cardDate = new Date(dateString);
+
+			// 유효하지 않은a 날짜 확인
+			if (isNaN(cardDate.getTime())) {
+				console.error('Invalid date in Card component:', dateString);
+				return false;
+			}
+
+			return today.getTime() === cardDate.getTime();
+		} catch (error) {
+			console.error('Error comparing dates:', error);
+			return false;
+		}
 	};
 
 	const todayFlag = isToday(date);

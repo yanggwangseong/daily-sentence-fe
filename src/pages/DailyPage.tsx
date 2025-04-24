@@ -52,14 +52,31 @@ const DailyPage: React.FC = () => {
 
 	// Function to get adjacent date (prev or next)
 	const getAdjacentDate = (direction: 'prev' | 'next'): string => {
-		// Parse the date string to ensure consistent date handling
-		const currentDateObj = parseISO(currentDate);
-		const newDate =
-			direction === 'prev'
-				? addDays(currentDateObj, -1)
-				: addDays(currentDateObj, 1);
+		// 현재 날짜가 없으면 오늘 날짜 사용
+		if (!currentDate) {
+			return getTodayDate();
+		}
 
-		return format(newDate, 'yyyy-MM-dd');
+		try {
+			// Parse the date string to ensure consistent date handling
+			const currentDateObj = parseISO(currentDate);
+
+			// 유효한 날짜인지 확인
+			if (isNaN(currentDateObj.getTime())) {
+				console.error('Invalid date:', currentDate);
+				return getTodayDate();
+			}
+
+			const newDate =
+				direction === 'prev'
+					? addDays(currentDateObj, -1)
+					: addDays(currentDateObj, 1);
+
+			return format(newDate, 'yyyy-MM-dd');
+		} catch (error) {
+			console.error('Error calculating adjacent date:', error);
+			return getTodayDate();
+		}
 	};
 
 	// Function to fetch data for a specific date
@@ -234,15 +251,25 @@ const DailyPage: React.FC = () => {
 	// Initial data load
 	useEffect(() => {
 		const loadInitialData = async () => {
-			const today = getTodayDate();
-			setCurrentDate(today);
+			try {
+				const today = getTodayDate();
+				setCurrentDate(today);
 
-			const data = await fetchData(today);
-			if (data) {
-				setCurrentData(data);
-				// Since we're at today's date, we can go backwards but not forwards
-				setCanNavigatePrev(true);
-				setCanNavigateNext(false);
+				const data = await fetchData(today);
+				if (data) {
+					setCurrentData(data);
+					// Since we're at today's date, we can go backwards but not forwards
+					setCanNavigatePrev(true);
+					setCanNavigateNext(false);
+				} else {
+					// 데이터를 가져오지 못한 경우 에러 설정
+					setError('데이터를 불러올 수 없습니다.');
+				}
+			} catch (error) {
+				console.error('Error loading initial data:', error);
+				setError('초기 데이터 로드 중 오류가 발생했습니다.');
+			} finally {
+				setIsLoading(false);
 			}
 		};
 
