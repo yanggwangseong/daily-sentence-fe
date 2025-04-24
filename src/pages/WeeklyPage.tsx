@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -77,6 +76,59 @@ const WeeklyPage = () => {
 		});
 	};
 
+	// Get the week number and month for the week title
+	const getWeekTitle = (dateString: string) => {
+		const date = new Date(dateString);
+		const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+
+		// Get the first day of the month
+		const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+
+		// Find the first Monday of the month
+		const firstMonday = new Date(firstDayOfMonth);
+		const dayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+		// If first day is not Monday, find the next Monday
+		if (dayOfWeek !== 1) {
+			const daysToAdd = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+			firstMonday.setDate(firstMonday.getDate() + daysToAdd);
+		}
+
+		// If the date is before the first Monday of the month, it's part of the last week of previous month
+		if (date < firstMonday) {
+			const prevMonth = new Date(date);
+			prevMonth.setDate(0); // Last day of previous month
+			return `${prevMonth.getMonth() + 1}월 마지막주`;
+		}
+
+		// Calculate the week number
+		const dayDiff = Math.floor(
+			(date.getTime() - firstMonday.getTime()) / (24 * 60 * 60 * 1000),
+		);
+		const weekNumber = Math.floor(dayDiff / 7) + 1;
+
+		return `${month}월 ${weekNumber}주차`;
+	};
+
+	// Format date range for subtitle
+	const formatDateRange = (startDateStr: string) => {
+		const startDate = new Date(startDateStr);
+		const endDate = new Date(startDateStr);
+		endDate.setDate(endDate.getDate() + 6);
+
+		const startFormatted = startDate.toLocaleDateString('ko-KR', {
+			month: 'numeric',
+			day: 'numeric',
+		});
+
+		const endFormatted = endDate.toLocaleDateString('ko-KR', {
+			month: 'numeric',
+			day: 'numeric',
+		});
+
+		return `${startFormatted} ~ ${endFormatted}`;
+	};
+
 	return (
 		<div className="app">
 			<Header />
@@ -85,12 +137,10 @@ const WeeklyPage = () => {
 					<button onClick={handlePreviousWeek} className="week-nav-button">
 						&lt; 이전 주
 					</button>
-					<h2 className="week-title">
-						{startDate} ~{' '}
-						{new Date(
-							new Date(startDate).setDate(new Date(startDate).getDate() + 6),
-						).toLocaleDateString('sv-SE')}
-					</h2>
+					<div className="week-title-container">
+						<h2 className="week-title">{getWeekTitle(startDate)}</h2>
+						<p className="week-subtitle">{formatDateRange(startDate)}</p>
+					</div>
 					<button onClick={handleNextWeek} className="week-nav-button">
 						다음 주 &gt;
 					</button>
@@ -120,7 +170,6 @@ const WeeklyPage = () => {
 											</ul>
 										)}
 										<div className="weekly-video-link">
-											<Link to={`/?date=${data.date}`}>자세히 보기</Link>
 											<a
 												href={data.videoUrl}
 												target="_blank"

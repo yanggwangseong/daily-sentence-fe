@@ -23,11 +23,25 @@
 	z-index: 5;
 }
 
+.week-title-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
 .week-title {
-	font-size: 16px;
+	font-size: 18px;
 	font-weight: 600;
 	color: #333;
-	text-align: center;
+	margin: 0;
+}
+
+.week-subtitle {
+	font-size: 14px;
+	color: #666;
+	margin: 4px 0 0 0;
+	font-weight: normal;
 }
 
 .week-nav-button {
@@ -150,7 +164,11 @@
 	}
 
 	.week-title {
-		font-size: 18px;
+		font-size: 20px;
+	}
+
+	.week-subtitle {
+		font-size: 15px;
 	}
 
 	.weekly-item {
