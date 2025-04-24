@@ -28,9 +28,13 @@
 	overflow: hidden;
 }
 
-/* Single card with different animation states */
+/* Base style for a single card */
 .carousel-card {
 	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	transform: translateY(-50%) scale(0.92);
 	width: 100%;
 	max-width: 100%;
 	background-color: white;
@@ -41,78 +45,78 @@
 		opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1);
 	will-change: transform, opacity;
 	backface-visibility: hidden;
-	opacity: 1;
-	z-index: 3;
+	opacity: 0;
+	z-index: 1;
+	pointer-events: none;
 }
 
-/* Current visible card (default state) */
+/* Currently visible card */
 .current-card {
-	transform: translateY(0);
+	transform: translateY(-50%) scale(1);
 	opacity: 1;
+	z-index: 3;
 	pointer-events: auto;
 }
 
-/* When the card is animating to go up (to show next card) */
+/* Animations: moving current card out */
 .card-moving-up {
-	animation: moveUp 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+	animation: moveUpFromCenter 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
-/* When the card is animating to come from bottom (after moving to next) */
-.card-becoming-current-from-bottom {
-	animation: slideInFromBottom 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
-}
-
-/* When the card is animating to go down (to show previous card) */
 .card-moving-down {
-	animation: moveDown 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+	animation: moveDownFromCenter 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
-/* When the card is animating to come from top (after moving to previous) */
+/* Animations: bringing new card in */
 .card-becoming-current-from-top {
 	animation: slideInFromTop 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
-/* Animations */
-@keyframes moveUp {
+.card-becoming-current-from-bottom {
+	animation: slideInFromBottom 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+/* Keyframes using top: 50% 기준 */
+@keyframes moveUpFromCenter {
 	from {
-		transform: translateY(0);
+		transform: translateY(-50%) scale(1);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(-100%);
+		transform: translateY(-150%) scale(0.9);
 		opacity: 0;
 	}
 }
 
-@keyframes moveDown {
+@keyframes moveDownFromCenter {
 	from {
-		transform: translateY(0);
+		transform: translateY(-50%) scale(1);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(100%);
+		transform: translateY(50%) scale(0.9);
 		opacity: 0;
-	}
-}
-
-@keyframes slideInFromBottom {
-	from {
-		transform: translateY(100%);
-		opacity: 0;
-	}
-	to {
-		transform: translateY(0);
-		opacity: 1;
 	}
 }
 
 @keyframes slideInFromTop {
 	from {
-		transform: translateY(-100%);
+		transform: translateY(-150%) scale(0.9);
 		opacity: 0;
 	}
 	to {
-		transform: translateY(0);
+		transform: translateY(-50%) scale(1);
+		opacity: 1;
+	}
+}
+
+@keyframes slideInFromBottom {
+	from {
+		transform: translateY(50%) scale(0.9);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(-50%) scale(1);
 		opacity: 1;
 	}
 }
@@ -178,7 +182,6 @@
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Styling for disabled scroll indicators */
 .scroll-indicator.disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
