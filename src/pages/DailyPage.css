@@ -51,7 +51,7 @@
 .carousel-card.current-card {
 	top: 50%;
 	left: 50%;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -70%);
 	opacity: 1;
 	pointer-events: auto;
 }
@@ -81,7 +81,7 @@
 	from {
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -70%);
 		opacity: 1;
 	}
 	to {
@@ -96,7 +96,7 @@
 	from {
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -70%);
 		opacity: 1;
 	}
 	to {
@@ -117,7 +117,7 @@
 	to {
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -70%);
 		opacity: 1;
 	}
 }
@@ -132,7 +132,7 @@
 	to {
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -70%);
 		opacity: 1;
 	}
 }
@@ -176,7 +176,7 @@
 }
 
 .scroll-up {
-	top: -18px;
+	top: 45px;
 	transform: translateX(-50%);
 }
 
@@ -185,7 +185,7 @@
 }
 
 .scroll-down {
-	bottom: -18px;
+	bottom: 45px;
 	transform: translateX(-50%);
 }
 
