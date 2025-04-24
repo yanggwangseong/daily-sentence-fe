@@ -53,7 +53,9 @@ const WeeklyPage = () => {
 
 	const today = new Date();
 	const [startDate, setStartDate] = useState(
-		getMonday(today).toLocaleDateString('sv-SE'),
+		getMonday(today).toLocaleDateString('sv-SE', {
+			timeZone: 'Asia/Seoul',
+		}),
 	);
 
 	const { data: weeklySentences, isLoading } = useQuery({
@@ -68,7 +70,9 @@ const WeeklyPage = () => {
 	const nextWeekDate = new Date(startDate);
 	nextWeekDate.setDate(nextWeekDate.getDate() + 7);
 	const isNextWeekInFuture = isFutureDate(
-		nextWeekDate.toLocaleDateString('sv-SE'),
+		nextWeekDate.toLocaleDateString('sv-SE', {
+			timeZone: 'Asia/Seoul',
+		}),
 	);
 
 	// Prefetch previous week data to check if it exists
@@ -76,7 +80,9 @@ const WeeklyPage = () => {
 		const checkPrevWeekData = async () => {
 			const prevWeek = new Date(startDate);
 			prevWeek.setDate(prevWeek.getDate() - 7);
-			const prevWeekStr = prevWeek.toLocaleDateString('sv-SE');
+			const prevWeekStr = prevWeek.toLocaleDateString('sv-SE', {
+				timeZone: 'Asia/Seoul',
+			});
 
 			try {
 				const res = await fetch(`/api/sentences/weeklys/${prevWeekStr}`);
@@ -96,7 +102,11 @@ const WeeklyPage = () => {
 
 		const prevWeek = new Date(startDate);
 		prevWeek.setDate(prevWeek.getDate() - 7);
-		setStartDate(prevWeek.toLocaleDateString('sv-SE'));
+		setStartDate(
+			prevWeek.toLocaleDateString('sv-SE', {
+				timeZone: 'Asia/Seoul',
+			}),
+		);
 	};
 
 	const handleNextWeek = () => {
@@ -104,7 +114,11 @@ const WeeklyPage = () => {
 
 		const nextWeek = new Date(startDate);
 		nextWeek.setDate(nextWeek.getDate() + 7);
-		setStartDate(nextWeek.toLocaleDateString('sv-SE'));
+		setStartDate(
+			nextWeek.toLocaleDateString('sv-SE', {
+				timeZone: 'Asia/Seoul',
+			}),
+		);
 	};
 
 	// Format date to be more readable

@@ -12,7 +12,9 @@ import './DailyPage.css';
 const getAdjacentDate = (date: string, days: number): string => {
 	const currentDate = new Date(date);
 	currentDate.setDate(currentDate.getDate() + days);
-	return currentDate.toLocaleDateString('sv-SE');
+	return currentDate.toLocaleDateString('sv-SE', {
+		timeZone: 'Asia/Seoul',
+	});
 };
 
 // Check if a date is in the future
@@ -41,7 +43,9 @@ const DailyPage: React.FC = () => {
 	// Get today's date in local timezone, ensuring we get the full day properly
 	const today = new Date();
 	today.setHours(9, 0, 0, 0); // Set to 9 AM to avoid timezone issues
-	const todayStr = today.toLocaleDateString('sv-SE');
+	const todayStr = today.toLocaleDateString('sv-SE', {
+		timeZone: 'Asia/Seoul',
+	});
 
 	const [searchParams] = useSearchParams();
 	// Check if date parameter exists in the URL
