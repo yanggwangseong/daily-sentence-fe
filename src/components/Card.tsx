@@ -23,9 +23,14 @@ const Card: React.FC<CardProps> = ({
 }) => {
 	return (
 		<div className="daily-english-card">
-			<p className="date">📅 {date}</p>
-			<h2 className="sentence">💬 "{sentence}"</h2>
-			<p className="meaning">👉 {meaning}</p>
+			<div className="card-header">
+				<p className="date">📅 {date}</p>
+				<h2 className="sentence">💬 "{sentence}"</h2>
+				<p className="meaning">👉 {meaning}</p>
+			</div>
+
+			<div className="content-separator"></div>
+
 			<div className="vocab">
 				<strong>📘 단어 설명</strong>
 				<ul>
@@ -36,6 +41,7 @@ const Card: React.FC<CardProps> = ({
 					))}
 				</ul>
 			</div>
+
 			<a
 				href={videoUrl}
 				className="video-link"
