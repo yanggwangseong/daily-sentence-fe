@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -30,7 +31,11 @@ const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
 
 const DailyPage: React.FC = () => {
 	const today = new Date().toLocaleDateString('sv-SE');
-	const [currentDate, setCurrentDate] = useState<string>(today);
+	const [searchParams] = useSearchParams();
+	// Check if date parameter exists in the URL
+	const dateParam = searchParams.get('date');
+	const [currentDate, setCurrentDate] = useState<string>(dateParam || today);
+
 	const queryClient = useQueryClient();
 	const carouselRef = useRef<HTMLDivElement>(null);
 	const [isScrolling, setIsScrolling] = useState(false);
@@ -54,10 +59,17 @@ const DailyPage: React.FC = () => {
 	const prevTwoDaysDate = getAdjacentDate(currentDate, -2);
 	const nextTwoDaysDate = getAdjacentDate(currentDate, 2);
 
+	// Update current date when URL parameter changes
+	useEffect(() => {
+		if (dateParam) {
+			setCurrentDate(dateParam);
+		}
+	}, [dateParam]);
+
 	// Pre-fetch several past and future days on initial load
 	useEffect(() => {
 		const fetchAdjacentDays = async () => {
-			const date = today;
+			const date = currentDate;
 			// Prefetch 10 days before today
 			for (let i = 1; i <= 10; i++) {
 				const pastDate = getAdjacentDate(date, -i);
@@ -78,7 +90,7 @@ const DailyPage: React.FC = () => {
 		};
 
 		fetchAdjacentDays();
-	}, [queryClient, today]);
+	}, [queryClient, currentDate]);
 
 	// Load current and adjacent cards
 	const { data: currentData, isLoading: isCurrentLoading } = useQuery({

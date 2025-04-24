@@ -14,9 +14,13 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 	padding: 10px 0;
 	border-bottom: 1px solid #eee;
+	position: sticky;
+	top: 0;
+	background-color: #f8f9fa;
+	z-index: 5;
 }
 
 .week-title {
@@ -39,17 +43,96 @@
 
 .week-nav-button:hover {
 	background-color: #e0e6ff;
+	transform: translateY(-1px);
 }
 
-.weekly-cards {
+.week-nav-button:active {
+	transform: translateY(0);
+}
+
+.weekly-list {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
 	padding-bottom: 30px;
 }
 
-.weekly-card-wrapper {
-	width: 100%;
+.weekly-item {
+	padding: 16px 0;
+	transition: background-color 0.2s ease;
+	border-radius: 8px;
+	margin: 4px 0;
+}
+
+.weekly-item:hover {
+	background-color: #f7f9ff;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.weekly-item-date {
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 10px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.weekly-item-content {
+	padding: 0 0 0 26px;
+}
+
+.weekly-sentence {
+	font-size: 16px;
+	line-height: 1.5;
+	margin: 10px 0;
+	color: #333;
+}
+
+.weekly-vocab {
+	list-style-type: none;
+	padding: 0;
+	margin: 8px 0;
+}
+
+.weekly-vocab li {
+	margin-bottom: 4px;
+	font-size: 14px;
+	color: #555;
+	line-height: 1.4;
+}
+
+.weekly-video-link {
+	margin: 12px 0;
+	display: flex;
+	gap: 16px;
+}
+
+.weekly-video-link a {
+	display: inline-flex;
+	align-items: center;
+	color: #4b6bfb;
+	text-decoration: none;
+	font-size: 14px;
+	font-weight: 500;
+	gap: 4px;
+	transition: all 0.2s ease;
+}
+
+.weekly-video-link a:hover {
+	text-decoration: underline;
+	transform: translateY(-1px);
+}
+
+.weekly-video-link a:active {
+	transform: translateY(0);
+}
+
+.weekly-divider {
+	height: 1px;
+	background-color: #eee;
+	margin: 6px 0;
 }
 
 .loading,
@@ -70,7 +153,20 @@
 		font-size: 18px;
 	}
 
-	.weekly-cards {
-		gap: 30px;
+	.weekly-item {
+		padding: 20px 0;
+	}
+
+	.weekly-item:hover {
+		padding-left: 12px;
+		padding-right: 12px;
+	}
+
+	.weekly-item-date {
+		font-size: 18px;
+	}
+
+	.weekly-sentence {
+		font-size: 17px;
 	}
 }

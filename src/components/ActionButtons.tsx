@@ -26,11 +26,9 @@ const ActionButtons: React.FC = () => {
 			<div className="button-group">
 				<button className="action-button share" onClick={handleShare}>
 					<span>공유</span>
-					<span>🔗</span>
 				</button>
 				<button className="action-button feedback" onClick={handleFeedback}>
 					<span>피드백</span>
-					<span>💬</span>
 				</button>
 			</div>
 		</div>

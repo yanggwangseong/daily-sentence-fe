@@ -13,7 +13,6 @@ const Header: React.FC = () => {
 			<div className="header-buttons">
 				<Link to="/weekly" className="weekly-button">
 					<span>Weekly</span>
-					<span>📅</span>
 				</Link>
 				<ActionButtons />
 			</div>

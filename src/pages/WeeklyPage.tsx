@@ -1,41 +1,42 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useQuery } from '@tanstack/react-query';
 
-import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 
 import './WeeklyPage.css';
 
-const fetchWeeklySentences = async (startDate: string) => {
+interface SentenceData {
+	date: string;
+	sentence: string;
+	meaning: string;
+	vocab: {
+		word: string;
+		definition: string;
+	}[];
+	videoUrl: string;
+}
+
+const fetchWeeklySentences = async (
+	startDate: string,
+): Promise<SentenceData[]> => {
 	try {
-		// Get sentences for the week starting from startDate
-		// This is a placeholder for the actual API call
-		const days = [];
-		const currentDate = new Date(startDate);
-
-		for (let i = 0; i < 7; i++) {
-			const dateStr = currentDate.toLocaleDateString('sv-SE');
-			try {
-				const res = await fetch(`/api/sentences/days/${dateStr}`);
-				if (res.ok) {
-					days.push(await res.json());
-				}
-			} catch (error) {
-				console.error(`Error fetching data for ${dateStr}:`, error);
-			}
-			currentDate.setDate(currentDate.getDate() + 1);
+		// Use the new API endpoint for weekly data
+		const res = await fetch(`/api/sentences/weeklys/${startDate}`);
+		if (!res.ok) {
+			console.error(`Weekly data fetch failed: ${res.status}`);
+			return [];
 		}
-
-		return days;
+		return await res.json();
 	} catch (error) {
 		console.error('Error fetching weekly data:', error);
 		return [];
 	}
 };
 
-const WeeklyPage: React.FC = () => {
+const WeeklyPage = () => {
 	// Get the current Monday as the default start date
 	const getMonday = (date: Date) => {
 		const day = date.getDay();
@@ -65,6 +66,17 @@ const WeeklyPage: React.FC = () => {
 		setStartDate(nextWeek.toLocaleDateString('sv-SE'));
 	};
 
+	// Format date to be more readable
+	const formatDate = (dateString: string) => {
+		const date = new Date(dateString);
+		return date.toLocaleDateString('ko-KR', {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			weekday: 'short',
+		});
+	};
+
 	return (
 		<div className="app">
 			<Header />
@@ -87,17 +99,40 @@ const WeeklyPage: React.FC = () => {
 				{isLoading ? (
 					<p className="loading">로딩 중...</p>
 				) : (
-					<div className="weekly-cards">
+					<div className="weekly-list">
 						{weeklySentences && weeklySentences.length > 0 ? (
 							weeklySentences.map((data, index) => (
-								<div key={index} className="weekly-card-wrapper">
-									<Card
-										date={data.date}
-										sentence={data.sentence}
-										meaning={data.meaning}
-										vocab={data.vocab}
-										videoUrl={data.videoUrl}
-									/>
+								<div key={index} className="weekly-item">
+									<div className="weekly-item-date">
+										<span>📅</span> {formatDate(data.date)}
+									</div>
+									<div className="weekly-item-content">
+										<p className="weekly-sentence">
+											"{data.sentence}" : {data.meaning}
+										</p>
+										{data.vocab && data.vocab.length > 0 && (
+											<ul className="weekly-vocab">
+												{data.vocab.slice(0, 2).map((v, i) => (
+													<li key={i}>
+														{v.word}: {v.definition}
+													</li>
+												))}
+											</ul>
+										)}
+										<div className="weekly-video-link">
+											<Link to={`/?date=${data.date}`}>자세히 보기</Link>
+											<a
+												href={data.videoUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												<span>📺</span> 관련 영상 보기
+											</a>
+										</div>
+									</div>
+									{index < weeklySentences.length - 1 && (
+										<div className="weekly-divider"></div>
+									)}
 								</div>
 							))
 						) : (
