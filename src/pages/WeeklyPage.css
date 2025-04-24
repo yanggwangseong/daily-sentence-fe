@@ -1,6 +1,21 @@
+/* Override global body style for weekly page */
+body.weekly-page-active {
+	overflow-y: auto !important;
+}
+
+.app-weekly {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	overflow-y: auto !important; /* Enable vertical scrolling for the weekly page */
+	overflow-x: hidden;
+	height: auto;
+}
+
 .weekly-content {
 	flex: 1;
-	padding: 16px;
+	padding: 16px 16px 120px 16px; /* Add extra padding at bottom for better scrolling */
 	width: 100%;
 	max-width: 100%;
 	margin: 0 auto;
@@ -8,6 +23,8 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	position: relative;
+	height: auto;
+	min-height: 90vh;
 }
 
 .week-navigation {
@@ -21,6 +38,7 @@
 	top: 0;
 	background-color: #f8f9fa;
 	z-index: 5;
+	width: 100%;
 }
 
 .week-title-container {
@@ -67,7 +85,8 @@
 .weekly-list {
 	display: flex;
 	flex-direction: column;
-	padding-bottom: 30px;
+	padding-bottom: 80px;
+	gap: 12px;
 }
 
 .weekly-item {

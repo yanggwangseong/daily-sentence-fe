@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -129,8 +129,26 @@ const WeeklyPage = () => {
 		return `${startFormatted} ~ ${endFormatted}`;
 	};
 
+	// Enable scrolling on the WeeklyPage
+	useEffect(() => {
+		// Save original body style and classes
+		const originalOverflow = document.body.style.overflowY;
+
+		// Add class to body
+		document.body.classList.add('weekly-page-active');
+
+		// Enable scrolling
+		document.body.style.overflowY = 'auto';
+
+		// Cleanup function to restore original style when component unmounts
+		return () => {
+			document.body.style.overflowY = originalOverflow;
+			document.body.classList.remove('weekly-page-active');
+		};
+	}, []);
+
 	return (
-		<div className="app">
+		<div className="app-weekly">
 			<Header />
 			<main className="weekly-content">
 				<div className="week-navigation">
