@@ -50,7 +50,7 @@ const DailyPage: React.FC = () => {
 
 	const isFutureDate = (dateString: string): boolean => {
 		const today = getTodayDate();
-		return dateString > today;
+		return dateString >= today;
 	};
 
 	const getAdjacentDate = (
@@ -116,9 +116,13 @@ const DailyPage: React.FC = () => {
 
 	const handleNextCard = async () => {
 		if (isAnimating.current || !canNavigateNext) return;
-		blockFurtherScroll();
 
 		const nextDate = getAdjacentDate('next', currentDateRef.current);
+		if (isFutureDate(nextDate)) {
+			return;
+		}
+
+		blockFurtherScroll();
 		setCardClassName('carousel-card card-moving-up');
 
 		const nextData = await fetchData(nextDate);
@@ -131,7 +135,8 @@ const DailyPage: React.FC = () => {
 			currentDateRef.current = nextDate;
 			setCurrentDate(nextDate);
 			setCurrentData(nextData);
-			setCanNavigateNext(!isFutureDate(nextDate));
+			const potentialNextDate = getAdjacentDate('next', nextDate);
+			setCanNavigateNext(!isFutureDate(potentialNextDate));
 			setCardClassName('carousel-card card-becoming-current-from-bottom');
 
 			setTimeout(() => {
@@ -149,8 +154,15 @@ const DailyPage: React.FC = () => {
 		if (!lastTouchY.current || isAnimating.current) return;
 		const diffY = e.changedTouches[0].clientY - lastTouchY.current;
 		if (Math.abs(diffY) < 50) return;
-		if (diffY > 0 && canNavigatePrev) handlePrevCard();
-		else if (diffY < 0 && canNavigateNext) handleNextCard();
+
+		if (diffY > 0 && canNavigatePrev) {
+			handlePrevCard();
+		} else if (diffY < 0 && canNavigateNext) {
+			const nextDate = getAdjacentDate('next', currentDateRef.current);
+			if (!isFutureDate(nextDate)) {
+				handleNextCard();
+			}
+		}
 		lastTouchY.current = null;
 	};
 
@@ -159,8 +171,15 @@ const DailyPage: React.FC = () => {
 		const now = Date.now();
 		if (now - lastWheelTime.current < 500) return;
 		lastWheelTime.current = now;
-		if (e.deltaY < 0 && canNavigatePrev) handlePrevCard();
-		else if (e.deltaY > 0 && canNavigateNext) handleNextCard();
+
+		if (e.deltaY < 0 && canNavigatePrev) {
+			handlePrevCard();
+		} else if (e.deltaY > 0 && canNavigateNext) {
+			const nextDate = getAdjacentDate('next', currentDateRef.current);
+			if (!isFutureDate(nextDate)) {
+				handleNextCard();
+			}
+		}
 	};
 
 	useEffect(() => {
@@ -171,7 +190,8 @@ const DailyPage: React.FC = () => {
 			if (data) {
 				setCurrentData(data);
 				setCanNavigatePrev(true);
-				setCanNavigateNext(false);
+				const potentialNextDate = getAdjacentDate('next', today);
+				setCanNavigateNext(!isFutureDate(potentialNextDate));
 			}
 			setIsLoading(false);
 		});
@@ -221,7 +241,19 @@ const DailyPage: React.FC = () => {
 						></div>
 						<div
 							className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
-							onClick={canNavigateNext ? handleNextCard : undefined}
+							onClick={
+								canNavigateNext
+									? () => {
+											const nextDate = getAdjacentDate(
+												'next',
+												currentDateRef.current,
+											);
+											if (!isFutureDate(nextDate)) {
+												handleNextCard();
+											}
+										}
+									: undefined
+							}
 						></div>
 					</div>
 				</div>
