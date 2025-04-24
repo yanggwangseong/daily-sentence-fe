@@ -35,6 +35,14 @@ const fetchWeeklySentences = async (
 	}
 };
 
+// Check if a date is in the future
+const isFutureDate = (dateStr: string): boolean => {
+	const date = new Date(dateStr);
+	const today = new Date();
+	today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+	return date > today;
+};
+
 const WeeklyPage = () => {
 	// Get the current Monday as the default start date
 	const getMonday = (date: Date) => {
@@ -53,13 +61,47 @@ const WeeklyPage = () => {
 		queryFn: () => fetchWeeklySentences(startDate),
 	});
 
+	// Check if we can navigate to previous week
+	const [canGoToPrevWeek, setCanGoToPrevWeek] = useState(true);
+
+	// Check if next week is in the future
+	const nextWeekDate = new Date(startDate);
+	nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+	const isNextWeekInFuture = isFutureDate(
+		nextWeekDate.toLocaleDateString('sv-SE'),
+	);
+
+	// Prefetch previous week data to check if it exists
+	useEffect(() => {
+		const checkPrevWeekData = async () => {
+			const prevWeek = new Date(startDate);
+			prevWeek.setDate(prevWeek.getDate() - 7);
+			const prevWeekStr = prevWeek.toLocaleDateString('sv-SE');
+
+			try {
+				const res = await fetch(`/api/sentences/weeklys/${prevWeekStr}`);
+				const data = await res.json();
+				setCanGoToPrevWeek(res.ok && data && data.length > 0);
+			} catch (error) {
+				console.error('Error checking previous week data:', error);
+				setCanGoToPrevWeek(false);
+			}
+		};
+
+		checkPrevWeekData();
+	}, [startDate]);
+
 	const handlePreviousWeek = () => {
+		if (!canGoToPrevWeek) return;
+
 		const prevWeek = new Date(startDate);
 		prevWeek.setDate(prevWeek.getDate() - 7);
 		setStartDate(prevWeek.toLocaleDateString('sv-SE'));
 	};
 
 	const handleNextWeek = () => {
+		if (isNextWeekInFuture) return;
+
 		const nextWeek = new Date(startDate);
 		nextWeek.setDate(nextWeek.getDate() + 7);
 		setStartDate(nextWeek.toLocaleDateString('sv-SE'));
@@ -81,31 +123,13 @@ const WeeklyPage = () => {
 		const date = new Date(dateString);
 		const month = date.getMonth() + 1; // JavaScript months are 0-indexed
 
-		// Get the first day of the month
+		// Get the week number within the month
 		const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+		const firstDayOfMonthWeekday = firstDayOfMonth.getDay() || 7; // Convert Sunday (0) to 7
 
-		// Find the first Monday of the month
-		const firstMonday = new Date(firstDayOfMonth);
-		const dayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-		// If first day is not Monday, find the next Monday
-		if (dayOfWeek !== 1) {
-			const daysToAdd = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-			firstMonday.setDate(firstMonday.getDate() + daysToAdd);
-		}
-
-		// If the date is before the first Monday of the month, it's part of the last week of previous month
-		if (date < firstMonday) {
-			const prevMonth = new Date(date);
-			prevMonth.setDate(0); // Last day of previous month
-			return `${prevMonth.getMonth() + 1}월 마지막주`;
-		}
-
-		// Calculate the week number
-		const dayDiff = Math.floor(
-			(date.getTime() - firstMonday.getTime()) / (24 * 60 * 60 * 1000),
-		);
-		const weekNumber = Math.floor(dayDiff / 7) + 1;
+		// Adjust the date to account for days from previous month in the first week
+		const adjustedDate = date.getDate() + (firstDayOfMonthWeekday - 1);
+		const weekNumber = Math.ceil(adjustedDate / 7);
 
 		return `${month}월 ${weekNumber}주차`;
 	};
@@ -152,14 +176,22 @@ const WeeklyPage = () => {
 			<Header />
 			<main className="weekly-content">
 				<div className="week-navigation">
-					<button onClick={handlePreviousWeek} className="week-nav-button">
+					<button
+						onClick={handlePreviousWeek}
+						className={`week-nav-button ${!canGoToPrevWeek ? 'disabled' : ''}`}
+						disabled={!canGoToPrevWeek}
+					>
 						&lt; 이전 주
 					</button>
 					<div className="week-title-container">
 						<h2 className="week-title">{getWeekTitle(startDate)}</h2>
 						<p className="week-subtitle">{formatDateRange(startDate)}</p>
 					</div>
-					<button onClick={handleNextWeek} className="week-nav-button">
+					<button
+						onClick={handleNextWeek}
+						className={`week-nav-button ${isNextWeekInFuture ? 'disabled' : ''}`}
+						disabled={isNextWeekInFuture}
+					>
 						다음 주 &gt;
 					</button>
 				</div>

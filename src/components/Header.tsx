@@ -8,7 +8,9 @@ const Header: React.FC = () => {
 	return (
 		<header className="header">
 			<div className="header-content">
-				<h1>매일영어</h1>
+				<Link to="/">
+					<h1>매일영어</h1>
+				</Link>
 			</div>
 			<div className="header-buttons">
 				<Link to="/weekly" className="weekly-button">
