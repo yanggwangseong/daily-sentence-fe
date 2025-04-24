@@ -79,7 +79,7 @@
 
 @keyframes slideFromTop {
 	from {
-		transform: translateY(-120%) scale(0.85);
+		transform: translateY(-150%) scale(0.85);
 		opacity: 0;
 		filter: blur(1px);
 		box-shadow: 0 -6px 15px rgba(0, 0, 0, 0.07);
@@ -94,7 +94,7 @@
 
 @keyframes slideFromBottom {
 	from {
-		transform: translateY(120%) scale(0.85);
+		transform: translateY(150%) scale(0.85);
 		opacity: 0;
 		filter: blur(1px);
 		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
@@ -217,13 +217,16 @@
 
 @keyframes becomingCurrentFromTop {
 	from {
-		transform: translateY(-80%) scale(0.92);
-		opacity: 0.75;
-		filter: blur(0.5px);
+		transform: translateY(-110%) scale(0.9);
+		opacity: 0.6;
+		filter: blur(0.8px);
 		border-bottom-left-radius: 30px;
 		border-bottom-right-radius: 30px;
 		z-index: 1;
 		box-shadow: 0 -6px 15px rgba(0, 0, 0, 0.07);
+	}
+	30% {
+		opacity: 0.75;
 	}
 	to {
 		transform: translateY(-50%) scale(1);
@@ -237,13 +240,16 @@
 
 @keyframes becomingCurrentFromBottom {
 	from {
-		transform: translateY(20%) scale(0.92);
-		opacity: 0.75;
-		filter: blur(0.5px);
+		transform: translateY(50%) scale(0.9);
+		opacity: 0.6;
+		filter: blur(0.8px);
 		border-top-left-radius: 30px;
 		border-top-right-radius: 30px;
 		z-index: 2;
 		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
+	}
+	30% {
+		opacity: 0.75;
 	}
 	to {
 		transform: translateY(-50%) scale(1);

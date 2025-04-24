@@ -15,6 +15,14 @@ const getAdjacentDate = (date: string, days: number): string => {
 	return currentDate.toLocaleDateString('sv-SE');
 };
 
+// Check if a date is in the future
+const isFutureDate = (dateStr: string): boolean => {
+	const date = new Date(dateStr);
+	const today = new Date();
+	today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+	return date > today;
+};
+
 const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
 	try {
 		const res = await fetch(`/api/sentences/days/${date}`);
@@ -163,7 +171,7 @@ const DailyPage: React.FC = () => {
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
 				}, 900); // Slightly longer to ensure everything completes
-			}, 50);
+			}, 30); // Reduced delay for smoother start
 		}
 	};
 
@@ -202,7 +210,7 @@ const DailyPage: React.FC = () => {
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
 				}, 900); // Slightly longer to ensure everything completes
-			}, 50);
+			}, 30); // Reduced delay for smoother start
 		}
 	};
 
@@ -232,9 +240,14 @@ const DailyPage: React.FC = () => {
 		if (isSwipeDown) {
 			console.log('Swiped down, going to previous card');
 			handlePrevCard();
-		} else if (isSwipeUp) {
-			console.log('Swiped up, going to next card');
-			handleNextCard();
+		} else if (isSwipeUp && nextData) {
+			// Only allow swiping up if there's next data and it's not a future date
+			if (!isFutureDate(nextDate)) {
+				console.log('Swiped up, going to next card');
+				handleNextCard();
+			} else {
+				console.log('Cannot swipe to future date');
+			}
 		}
 	};
 
@@ -250,8 +263,8 @@ const DailyPage: React.FC = () => {
 			// Scrolling up - show previous card
 			console.log('Scrolling up, going to previous card');
 			handlePrevCard();
-		} else if (e.deltaY > 0) {
-			// Scrolling down - show next card
+		} else if (e.deltaY > 0 && nextData && !isFutureDate(nextDate)) {
+			// Scrolling down - show next card only if it's not a future date
 			console.log('Scrolling down, going to next card');
 			handleNextCard();
 		}
@@ -329,7 +342,7 @@ const DailyPage: React.FC = () => {
 							</div>
 						)}
 
-						{nextData && (
+						{nextData && !isFutureDate(nextDate) && (
 							<div className={getNextCardClass()}>
 								<Card
 									date={nextData.date}
@@ -342,7 +355,9 @@ const DailyPage: React.FC = () => {
 						)}
 
 						{prevData && <div className="scroll-indicator scroll-up"></div>}
-						{nextData && <div className="scroll-indicator scroll-down"></div>}
+						{nextData && !isFutureDate(nextDate) && (
+							<div className="scroll-indicator scroll-down"></div>
+						)}
 					</div>
 				)}
 			</main>
