@@ -1,21 +1,25 @@
 .action-buttons {
-	margin-top: 20px;
+	display: flex;
+	gap: 8px;
 }
 
 .button-group {
 	display: flex;
-	gap: 12px;
-	justify-content: center;
+	gap: 8px;
 }
 
 .action-button {
-	padding: 12px 24px;
+	padding: 8px 12px;
 	border: none;
 	border-radius: 8px;
 	font-size: 14px;
 	font-weight: 500;
 	cursor: pointer;
 	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
 }
 
 .action-button.share {
@@ -39,4 +43,11 @@
 .action-button.feedback:hover {
 	background-color: #f5f7ff;
 	transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+	.action-button {
+		padding: 6px 10px;
+		font-size: 13px;
+	}
 }

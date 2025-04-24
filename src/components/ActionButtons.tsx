@@ -25,10 +25,12 @@ const ActionButtons: React.FC = () => {
 		<div className="action-buttons">
 			<div className="button-group">
 				<button className="action-button share" onClick={handleShare}>
-					공유하기
+					<span>공유</span>
+					<span>🔗</span>
 				</button>
 				<button className="action-button feedback" onClick={handleFeedback}>
-					기능/버그 제안
+					<span>피드백</span>
+					<span>💬</span>
 				</button>
 			</div>
 		</div>
