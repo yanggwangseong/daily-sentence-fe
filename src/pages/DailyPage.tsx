@@ -11,15 +11,11 @@ interface SentenceData {
 	date: string;
 	sentence: string;
 	meaning: string;
-	vocab: {
-		word: string;
-		definition: string;
-	}[];
+	vocab: { word: string; definition: string }[];
 	videoUrl: string;
 }
 
 const DailyPage: React.FC = () => {
-	// States
 	const [currentData, setCurrentData] = useState<SentenceData | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
@@ -30,247 +26,157 @@ const DailyPage: React.FC = () => {
 		'carousel-card current-card',
 	);
 
-	// Refs for scroll handling
 	const containerRef = useRef<HTMLDivElement>(null);
 	const lastTouchY = useRef<number | null>(null);
 	const lastWheelTime = useRef<number>(0);
 	const lastTouchTime = useRef<number>(0);
 	const isAnimating = useRef<boolean>(false);
+	let scrollBlockTimer: NodeJS.Timeout | null = null;
 
-	// Get adjusted today's date at 9am to avoid timezone issues
+	const blockFurtherScroll = () => {
+		if (scrollBlockTimer) clearTimeout(scrollBlockTimer);
+		isAnimating.current = true;
+		scrollBlockTimer = setTimeout(() => {
+			isAnimating.current = false;
+		}, 600);
+	};
+
 	const getTodayDate = (): string => {
 		const today = new Date();
 		today.setHours(9, 0, 0, 0);
 		return format(today, 'yyyy-MM-dd');
 	};
 
-	// Helper function to check if a date is in the future
 	const isFutureDate = (dateString: string): boolean => {
 		const today = getTodayDate();
 		return dateString > today;
 	};
 
-	// Function to get adjacent date (prev or next)
 	const getAdjacentDate = (direction: 'prev' | 'next'): string => {
-		// 현재 날짜가 없으면 오늘 날짜 사용
-		if (!currentDate) {
-			return getTodayDate();
-		}
-
+		if (!currentDate) return getTodayDate();
 		try {
-			// Parse the date string to ensure consistent date handling
 			const currentDateObj = parseISO(currentDate);
-
-			// 유효한 날짜인지 확인
-			if (isNaN(currentDateObj.getTime())) {
-				console.error('Invalid date:', currentDate);
-				return getTodayDate();
-			}
-
+			if (isNaN(currentDateObj.getTime())) return getTodayDate();
 			const newDate =
 				direction === 'prev'
 					? addDays(currentDateObj, -1)
 					: addDays(currentDateObj, 1);
-
 			return format(newDate, 'yyyy-MM-dd');
-		} catch (error) {
-			console.error('Error calculating adjacent date:', error);
+		} catch {
 			return getTodayDate();
 		}
 	};
 
-	// Function to fetch data for a specific date
 	const fetchData = async (date: string) => {
 		try {
 			setIsLoading(true);
 			const response = await fetch(`/api/sentences/days/${date}`);
-
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-
+			if (!response.ok) throw new Error('Fetch failed');
 			const data = await response.json();
 			return data;
 		} catch (err) {
-			setError('Could not fetch data. Please try again later.');
-			console.error('Fetch error:', err);
+			setError('데이터를 불러올 수 없습니다.');
 			return null;
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	// Get appropriate card class based on animation state
-	const getCardClass = (): string => {
-		return cardClassName;
-	};
+	const getCardClass = (): string => cardClassName;
 
 	const handlePrevCard = async () => {
 		if (isAnimating.current || !canNavigatePrev) return;
-		isAnimating.current = true;
+		blockFurtherScroll();
 
 		const prevDate = getAdjacentDate('prev');
-		console.log('이전으로 이동: ' + currentDate + ' -> ' + prevDate);
-
-		setCurrentDate(prevDate);
-
-		// 애니메이션 시작
 		setCardClassName('carousel-card card-moving-down');
 
 		const prevData = await fetchData(prevDate);
-
 		if (!prevData) {
-			isAnimating.current = false;
 			setCardClassName('carousel-card current-card');
 			return;
 		}
 
-		// 애니메이션 도중에 데이터 먼저 반영 (즉시)
-		setCurrentData(prevData);
-		setCanNavigateNext(true); // 뒤로 갔으니 앞으로는 가능
-
-		// 애니메이션 단계
 		setTimeout(() => {
+			setCurrentDate(prevDate);
+			setCurrentData(prevData);
+			setCanNavigateNext(true);
 			setCardClassName('carousel-card card-becoming-current-from-top');
+
 			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
-				isAnimating.current = false;
 			}, 500);
 		}, 500);
 	};
 
 	const handleNextCard = async () => {
 		if (isAnimating.current || !canNavigateNext) return;
-		isAnimating.current = true;
+		blockFurtherScroll();
 
 		const nextDate = getAdjacentDate('next');
-		console.log('다음으로 이동: ' + currentDate + ' -> ' + nextDate);
-
-		setCurrentDate(nextDate);
-
 		setCardClassName('carousel-card card-moving-up');
 
 		const nextData = await fetchData(nextDate);
 		if (!nextData) {
-			isAnimating.current = false;
 			setCardClassName('carousel-card current-card');
 			return;
 		}
 
-		setCurrentData(nextData);
-		setCanNavigateNext(!isFutureDate(nextDate));
-
 		setTimeout(() => {
+			setCurrentDate(nextDate);
+			setCurrentData(nextData);
+			setCanNavigateNext(!isFutureDate(nextDate));
 			setCardClassName('carousel-card card-becoming-current-from-bottom');
+
 			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
-				isAnimating.current = false;
 			}, 500);
 		}, 500);
 	};
 
-	// Touch event handlers
 	const onTouchStart = (e: React.TouchEvent) => {
 		lastTouchY.current = e.touches[0].clientY;
 		lastTouchTime.current = Date.now();
 	};
 
-	const onTouchMove = (e: React.TouchEvent) => {
-		if (isAnimating.current || !lastTouchY.current) return;
-
-		const currentY = e.touches[0].clientY;
-		const diffY = currentY - lastTouchY.current;
-
-		// Prevent default scrolling when handling our swipe
-		if (Math.abs(diffY) > 10) {
-			e.preventDefault();
-		}
-	};
-
 	const onTouchEnd = (e: React.TouchEvent) => {
-		if (isAnimating.current || !lastTouchY.current) return;
-
-		const currentY = e.changedTouches[0].clientY;
-		const diffY = currentY - lastTouchY.current;
-		const timeDiff = Date.now() - lastTouchTime.current;
-
-		// Threshold for minimum time between events
-		if (timeDiff < 300) {
-			lastTouchY.current = null;
-			return;
-		}
-
-		// Reset for next touch
-		lastTouchY.current = null;
-
-		// Threshold for swipe distance
+		if (!lastTouchY.current || isAnimating.current) return;
+		const diffY = e.changedTouches[0].clientY - lastTouchY.current;
 		if (Math.abs(diffY) < 50) return;
-
-		if (diffY > 0 && canNavigatePrev) {
-			// Swipe down, go to previous
-			handlePrevCard();
-		} else if (diffY < 0 && canNavigateNext) {
-			// Swipe up, go to next
-			handleNextCard();
-		}
+		if (diffY > 0 && canNavigatePrev) handlePrevCard();
+		else if (diffY < 0 && canNavigateNext) handleNextCard();
+		lastTouchY.current = null;
 	};
 
-	// Mouse wheel event handler
 	const handleWheel = (e: WheelEvent) => {
 		if (isAnimating.current) return;
-
 		const now = Date.now();
-		if (now - lastWheelTime.current < 500) return; // Prevent rapid scrolling
-
+		if (now - lastWheelTime.current < 500) return;
 		lastWheelTime.current = now;
-
-		if (e.deltaY < 0 && canNavigatePrev) {
-			// Scrolling up, go to previous
-			handlePrevCard();
-		} else if (e.deltaY > 0 && canNavigateNext) {
-			// Scrolling down, go to next
-			handleNextCard();
-		}
+		if (e.deltaY < 0 && canNavigatePrev) handlePrevCard();
+		else if (e.deltaY > 0 && canNavigateNext) handleNextCard();
 	};
 
-	// Initial data load
 	useEffect(() => {
-		const loadInitialData = async () => {
-			try {
-				const today = getTodayDate();
-				setCurrentDate(today);
-
-				const data = await fetchData(today);
-				if (data) {
-					setCurrentData(data);
-					// Since we're at today's date, we can go backwards but not forwards
-					setCanNavigatePrev(true);
-					setCanNavigateNext(false);
-				} else {
-					// 데이터를 가져오지 못한 경우 에러 설정
-					setError('데이터를 불러올 수 없습니다.');
-				}
-			} catch (error) {
-				console.error('Error loading initial data:', error);
-				setError('초기 데이터 로드 중 오류가 발생했습니다.');
-			} finally {
-				setIsLoading(false);
+		const today = getTodayDate();
+		setCurrentDate(today);
+		fetchData(today).then((data) => {
+			if (data) {
+				setCurrentData(data);
+				setCanNavigatePrev(true);
+				setCanNavigateNext(false);
 			}
-		};
-
-		loadInitialData();
+			setIsLoading(false);
+		});
 	}, []);
 
-	// Set up wheel event listener
 	useEffect(() => {
 		const currentContainer = containerRef.current;
-
 		if (currentContainer) {
 			currentContainer.addEventListener('wheel', handleWheel, {
 				passive: false,
 			});
 		}
-
 		return () => {
 			if (currentContainer) {
 				currentContainer.removeEventListener('wheel', handleWheel);
@@ -278,7 +184,6 @@ const DailyPage: React.FC = () => {
 		};
 	}, [canNavigatePrev, canNavigateNext]);
 
-	// Render component
 	return (
 		<div className="page-container">
 			<Header />
@@ -287,29 +192,15 @@ const DailyPage: React.FC = () => {
 					className="card-carousel"
 					ref={containerRef}
 					onTouchStart={onTouchStart}
-					onTouchMove={onTouchMove}
 					onTouchEnd={onTouchEnd}
 				>
-					{/* Current Card */}
 					{currentData && (
 						<div className={getCardClass()}>
-							<Card
-								date={currentData.date}
-								sentence={currentData.sentence}
-								meaning={currentData.meaning}
-								vocab={currentData.vocab}
-								videoUrl={currentData.videoUrl}
-							/>
+							<Card {...currentData} />
 						</div>
 					)}
-
-					{/* Loading state */}
 					{isLoading && <div className="loading">Loading...</div>}
-
-					{/* Error state */}
 					{error && <div className="error">{error}</div>}
-
-					{/* Scroll indicators */}
 					<div className="scroll-indicator-container">
 						<div
 							className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
