@@ -105,82 +105,62 @@ const DailyPage: React.FC = () => {
 		return cardClassName;
 	};
 
-	// Navigate to previous card/date
 	const handlePrevCard = async () => {
 		if (isAnimating.current || !canNavigatePrev) return;
 		isAnimating.current = true;
 
-		// Start animation to move current card down
-		setCardClassName('carousel-card card-moving-down');
-
-		// Calculate the previous date
 		const prevDate = getAdjacentDate('prev');
-
-		// Fetch previous data
 		const prevData = await fetchData(prevDate);
 
-		// After animation duration, update state with new data
-		setTimeout(async () => {
-			if (prevData) {
-				setCurrentDate(prevDate);
-				setCurrentData(prevData);
+		if (!prevData) {
+			isAnimating.current = false;
+			return;
+		}
 
-				// Update navigation flags
-				setCanNavigateNext(true); // We can always go forward after going back
+		// 1. 먼저 상태 업데이트
+		setCurrentDate(prevDate);
+		setCurrentData(prevData);
+		setCanNavigateNext(true); // 과거에서 내려가면 미래 가능성 생김
 
-				// Reset card class for entry animation
-				setCardClassName('carousel-card card-becoming-current-from-top');
+		// 2. 그 다음 애니메이션 시작
+		setCardClassName('carousel-card card-moving-down');
 
-				// Reset animation flag after animation completes
-				setTimeout(() => {
-					setCardClassName('carousel-card current-card');
-					isAnimating.current = false;
-				}, 500);
-			} else {
-				// In case of error, revert to original state
+		// 3. 애니메이션 마친 후 현재 카드로 전환
+		setTimeout(() => {
+			setCardClassName('carousel-card card-becoming-current-from-top');
+
+			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
 				isAnimating.current = false;
-			}
+			}, 500);
 		}, 500);
 	};
 
-	// Navigate to next card/date
 	const handleNextCard = async () => {
 		if (isAnimating.current || !canNavigateNext) return;
 		isAnimating.current = true;
 
-		// Start animation to move current card up
-		setCardClassName('carousel-card card-moving-up');
-
-		// Calculate the next date
 		const nextDate = getAdjacentDate('next');
-
-		// Fetch next data
 		const nextData = await fetchData(nextDate);
 
-		// After animation duration, update state with new data
-		setTimeout(async () => {
-			if (nextData) {
-				setCurrentDate(nextDate);
-				setCurrentData(nextData);
+		if (!nextData) {
+			isAnimating.current = false;
+			return;
+		}
 
-				// Update navigation flags
-				const isNextDateFuture = isFutureDate(nextDate);
-				setCanNavigateNext(!isNextDateFuture);
+		setCurrentDate(nextDate);
+		setCurrentData(nextData);
+		setCanNavigateNext(!isFutureDate(nextDate));
 
-				// Reset card class for entry animation
-				setCardClassName('carousel-card card-becoming-current-from-bottom');
+		setCardClassName('carousel-card card-moving-up');
 
-				// Reset animation flag after animation completes
-				setTimeout(() => {
-					setCardClassName('carousel-card current-card');
-					isAnimating.current = false;
-				}, 500);
-			} else {
-				// In case of error, revert to original state
+		setTimeout(() => {
+			setCardClassName('carousel-card card-becoming-current-from-bottom');
+
+			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
 				isAnimating.current = false;
-			}
+			}, 500);
 		}, 500);
 	};
 
