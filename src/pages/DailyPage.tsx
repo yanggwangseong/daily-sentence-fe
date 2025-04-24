@@ -20,9 +20,9 @@ const getAdjacentDate = (date: string, days: number): string => {
 // Check if a date is in the future
 const isFutureDate = (dateStr: string): boolean => {
 	const date = new Date(dateStr);
-	const today = new Date();
-	today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-	return date > today;
+	const now = new Date();
+	now.setHours(0, 0, 0, 0);
+	return date.getTime() > now.getTime(); // 동일 날짜는 false 반환
 };
 
 const fetchSentenceByDate = async (
@@ -274,7 +274,11 @@ const DailyPage: React.FC = () => {
 			// Scrolling up - show previous card
 			console.log('Scrolling up, going to previous card');
 			handlePrevCard();
-		} else if (e.deltaY > 0 && nextData && !isFutureDate(nextDate)) {
+		} else if (
+			e.deltaY > 0 &&
+			nextData &&
+			(!isFutureDate(nextDate) || nextDate === todayStr)
+		) {
 			// Scrolling down - show next card only if it's not a future date
 			console.log('Scrolling down, going to next card');
 			handleNextCard();
@@ -307,9 +311,8 @@ const DailyPage: React.FC = () => {
 
 	// Check if we can show the next card
 	const canShowNextCard = () => {
-		return (
-			nextData != null && (!isFutureDate(nextDate) || nextDate === todayStr)
-		);
+		const isToday = nextDate === todayStr;
+		return nextData != null && (!isFutureDate(nextDate) || isToday);
 	};
 
 	// Get appropriate class for current card
