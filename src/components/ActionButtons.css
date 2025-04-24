@@ -22,6 +22,46 @@
 	box-sizing: border-box;
 }
 
+/* Eye-catching subscribe button */
+.action-button.subscribe {
+	background: linear-gradient(135deg, #4b6bfb 0%, #6b4bfb 100%);
+	color: white;
+	box-shadow: 0 4px 10px rgba(75, 107, 251, 0.25);
+	font-weight: 600;
+	position: relative;
+	overflow: hidden;
+}
+
+.action-button.subscribe:hover {
+	background: linear-gradient(135deg, #3451db 0%, #5a3dd8 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 15px rgba(75, 107, 251, 0.3);
+}
+
+.action-button.subscribe::after {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: rgba(255, 255, 255, 0.1);
+	transform: rotate(45deg);
+	animation: shine 3s infinite;
+}
+
+@keyframes shine {
+	0% {
+		transform: rotate(45deg) translateX(-120%);
+	}
+	30% {
+		transform: rotate(45deg) translateX(120%);
+	}
+	100% {
+		transform: rotate(45deg) translateX(120%);
+	}
+}
+
 .action-button.share {
 	background-color: #4b6bfb;
 	color: white;
@@ -45,9 +85,148 @@
 	transform: translateY(-1px);
 }
 
+/* Subscription modal styles */
+.subscription-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.subscription-modal {
+	background-color: white;
+	border-radius: 12px;
+	padding: 24px;
+	width: 90%;
+	max-width: 400px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+	animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(30px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.subscription-modal h3 {
+	font-size: 20px;
+	margin: 0 0 12px 0;
+	color: #333;
+}
+
+.subscription-modal p {
+	font-size: 14px;
+	line-height: 1.5;
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.subscription-input-group {
+	margin-bottom: 20px;
+}
+
+.subscription-input-group input {
+	width: 100%;
+	padding: 12px 14px;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	box-sizing: border-box;
+}
+
+.subscription-input-group input:focus {
+	border-color: #4b6bfb;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(75, 107, 251, 0.1);
+}
+
+.subscription-input-group input:disabled {
+	background-color: #f5f5f5;
+	cursor: not-allowed;
+}
+
+.subscription-error {
+	color: #e74c3c;
+	font-size: 13px;
+	margin-top: 8px;
+}
+
+.subscription-button-group {
+	display: flex;
+	gap: 10px;
+}
+
+.subscription-button {
+	padding: 10px 16px;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	flex: 1;
+}
+
+.subscription-button.submit {
+	background: linear-gradient(135deg, #4b6bfb 0%, #6b4bfb 100%);
+	color: white;
+}
+
+.subscription-button.submit:hover {
+	background: linear-gradient(135deg, #3451db 0%, #5a3dd8 100%);
+	transform: translateY(-1px);
+}
+
+.subscription-button.submit:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.subscription-button.cancel {
+	background-color: #f1f1f1;
+	color: #555;
+}
+
+.subscription-button.cancel:hover {
+	background-color: #e0e0e0;
+	transform: translateY(-1px);
+}
+
 @media (max-width: 480px) {
 	.action-button {
-		padding: 6px 10px;
+		padding: 8px 12px;
 		font-size: 13px;
+	}
+
+	.subscription-modal {
+		padding: 20px;
+	}
+
+	.subscription-button {
+		padding: 10px 14px;
 	}
 }
