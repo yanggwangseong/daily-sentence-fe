@@ -144,14 +144,14 @@ const App: React.FC = () => {
 					});
 					setIsAnimating(false);
 					setPrevDirection(null);
-				}, 500); // Match CSS transition duration
+				}, 700); // Match CSS transition duration
 
 				if (scrollTimeout.current) {
 					clearTimeout(scrollTimeout.current);
 				}
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
-				}, 700); // Slightly longer to ensure everything completes
+				}, 900); // Slightly longer to ensure everything completes
 			}, 50);
 		}
 	};
@@ -183,14 +183,14 @@ const App: React.FC = () => {
 					});
 					setIsAnimating(false);
 					setPrevDirection(null);
-				}, 500); // Match CSS transition duration
+				}, 700); // Match CSS transition duration
 
 				if (scrollTimeout.current) {
 					clearTimeout(scrollTimeout.current);
 				}
 				scrollTimeout.current = setTimeout(() => {
 					setIsScrolling(false);
-				}, 700); // Slightly longer to ensure everything completes
+				}, 900); // Slightly longer to ensure everything completes
 			}, 50);
 		}
 	};
