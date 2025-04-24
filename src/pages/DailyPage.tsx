@@ -25,18 +25,20 @@ const isFutureDate = (dateStr: string): boolean => {
 	return date > today;
 };
 
-const fetchSentenceByDate = async (date: string): Promise<CardProps | null> => {
+const fetchSentenceByDate = async (
+	date: string,
+): Promise<CardProps | undefined> => {
 	console.log('fetch date', date);
 	try {
 		const res = await fetch(`/api/sentences/days/${date}`);
 		if (!res.ok) {
 			console.log(`${date} 데이터 없음: ${res.status}`);
-			return null;
+			return undefined;
 		}
 		return await res.json();
 	} catch (error) {
 		console.error(`${date} 데이터 가져오기 실패:`, error);
-		return null;
+		return undefined;
 	}
 };
 
