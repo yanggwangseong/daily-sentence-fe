@@ -109,14 +109,14 @@ const DailyPage: React.FC = () => {
 		if (isAnimating.current || !canNavigatePrev) return;
 		isAnimating.current = true;
 
-		// 현재 날짜를 기준으로 이전 날짜 계산
 		const prevDate = getAdjacentDate('prev');
 		console.log('이전으로 이동: ' + currentDate + ' -> ' + prevDate);
 
-		// 애니메이션 먼저 시작
+		setCurrentDate(prevDate);
+
+		// 애니메이션 시작
 		setCardClassName('carousel-card card-moving-down');
 
-		// 데이터 가져오기
 		const prevData = await fetchData(prevDate);
 
 		if (!prevData) {
@@ -125,16 +125,13 @@ const DailyPage: React.FC = () => {
 			return;
 		}
 
-		// 애니메이션이 어느정도 진행된 후에 데이터 업데이트
+		// 애니메이션 도중에 데이터 먼저 반영 (즉시)
+		setCurrentData(prevData);
+		setCanNavigateNext(true); // 뒤로 갔으니 앞으로는 가능
+
+		// 애니메이션 단계
 		setTimeout(() => {
-			// 상태 업데이트
-			setCurrentDate(prevDate);
-			setCurrentData(prevData);
-			setCanNavigateNext(true); // 과거에서 내려가면 미래 가능성 생김
-
-			// 애니메이션 전환
 			setCardClassName('carousel-card card-becoming-current-from-top');
-
 			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
 				isAnimating.current = false;
@@ -146,32 +143,25 @@ const DailyPage: React.FC = () => {
 		if (isAnimating.current || !canNavigateNext) return;
 		isAnimating.current = true;
 
-		// 현재 날짜를 기준으로 다음 날짜 계산
 		const nextDate = getAdjacentDate('next');
 		console.log('다음으로 이동: ' + currentDate + ' -> ' + nextDate);
 
-		// 애니메이션 먼저 시작
+		setCurrentDate(nextDate);
+
 		setCardClassName('carousel-card card-moving-up');
 
-		// 데이터 가져오기
 		const nextData = await fetchData(nextDate);
-
 		if (!nextData) {
 			isAnimating.current = false;
 			setCardClassName('carousel-card current-card');
 			return;
 		}
 
-		// 애니메이션이 어느정도 진행된 후에 데이터 업데이트
+		setCurrentData(nextData);
+		setCanNavigateNext(!isFutureDate(nextDate));
+
 		setTimeout(() => {
-			// 상태 업데이트
-			setCurrentDate(nextDate);
-			setCurrentData(nextData);
-			setCanNavigateNext(!isFutureDate(nextDate));
-
-			// 애니메이션 전환
 			setCardClassName('carousel-card card-becoming-current-from-bottom');
-
 			setTimeout(() => {
 				setCardClassName('carousel-card current-card');
 				isAnimating.current = false;
