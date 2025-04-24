@@ -4,6 +4,8 @@ import './DailyPage.css';
 import { format, parseISO, addDays } from 'date-fns';
 
 import Card from '../components/Card';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
 
 interface SentenceData {
 	date: string;
@@ -266,43 +268,49 @@ const DailyPage: React.FC = () => {
 
 	// Render component
 	return (
-		<div className="main-content">
-			<div
-				className="card-carousel"
-				ref={containerRef}
-				onTouchStart={onTouchStart}
-				onTouchMove={onTouchMove}
-				onTouchEnd={onTouchEnd}
-			>
-				{/* Current Card */}
-				{currentData && (
-					<div className={getCardClass()}>
-						<Card
-							date={currentData.date}
-							sentence={currentData.sentence}
-							meaning={currentData.meaning}
-							vocab={currentData.vocab}
-							videoUrl={currentData.videoUrl}
-						/>
+		<div className="page-container">
+			<Header />
+			<div className="main-content">
+				<div
+					className="card-carousel"
+					ref={containerRef}
+					onTouchStart={onTouchStart}
+					onTouchMove={onTouchMove}
+					onTouchEnd={onTouchEnd}
+				>
+					{/* Current Card */}
+					{currentData && (
+						<div className={getCardClass()}>
+							<Card
+								date={currentData.date}
+								sentence={currentData.sentence}
+								meaning={currentData.meaning}
+								vocab={currentData.vocab}
+								videoUrl={currentData.videoUrl}
+							/>
+						</div>
+					)}
+
+					{/* Loading state */}
+					{isLoading && <div className="loading">Loading...</div>}
+
+					{/* Error state */}
+					{error && <div className="error">{error}</div>}
+
+					{/* Scroll indicators */}
+					<div className="scroll-indicator-container">
+						<div
+							className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
+							onClick={canNavigatePrev ? handlePrevCard : undefined}
+						></div>
+						<div
+							className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
+							onClick={canNavigateNext ? handleNextCard : undefined}
+						></div>
 					</div>
-				)}
-
-				{/* Loading state */}
-				{isLoading && <div className="loading">Loading...</div>}
-
-				{/* Error state */}
-				{error && <div className="error">{error}</div>}
-
-				{/* Scroll indicators */}
-				<div className="scroll-indicator-container">
-					<div
-						className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
-					></div>
-					<div
-						className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
-					></div>
 				</div>
 			</div>
+			<Footer />
 		</div>
 	);
 };
