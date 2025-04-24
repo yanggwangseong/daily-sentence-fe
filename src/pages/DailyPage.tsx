@@ -44,13 +44,13 @@ const DailyPage: React.FC = () => {
 
 	const getTodayDate = (): string => {
 		const today = new Date();
-		today.setHours(9, 0, 0, 0);
+		today.setHours(0, 0, 0, 0);
 		return format(today, 'yyyy-MM-dd');
 	};
 
 	const isFutureDate = (dateString: string): boolean => {
 		const today = getTodayDate();
-		return dateString >= today;
+		return dateString > today;
 	};
 
 	const getAdjacentDate = (

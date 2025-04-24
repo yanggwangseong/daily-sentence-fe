@@ -185,7 +185,7 @@
 }
 
 .scroll-down {
-	bottom: -45px;
+	bottom: 200px;
 	transform: translateX(-50%);
 }
 
