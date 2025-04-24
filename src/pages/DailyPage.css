@@ -176,7 +176,7 @@
 }
 
 .scroll-up {
-	top: 45px;
+	top: 10vh;
 	transform: translateX(-50%);
 }
 
@@ -185,7 +185,7 @@
 }
 
 .scroll-down {
-	bottom: 200px;
+	bottom: 10vh;
 	transform: translateX(-50%);
 }
 
@@ -223,5 +223,25 @@
 
 	.card-carousel {
 		height: 85vh;
+	}
+
+	/* 데스크탑에서의 스크롤 인디케이터 위치 조정 */
+	.scroll-up {
+		top: 12vh;
+	}
+
+	.scroll-down {
+		bottom: 12vh;
+	}
+}
+
+/* 작은 화면 모바일 장치를 위한 추가 설정 */
+@media (max-height: 600px) {
+	.scroll-up {
+		top: 8vh;
+	}
+
+	.scroll-down {
+		bottom: 8vh;
 	}
 }
