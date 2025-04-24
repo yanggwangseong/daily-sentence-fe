@@ -21,7 +21,7 @@
 	overflow: hidden;
 }
 
-/* Base style for cards */
+/* Single card with different animation states */
 .carousel-card {
 	position: absolute;
 	width: 100%;
@@ -29,45 +29,38 @@
 	background-color: white;
 	border-radius: 16px;
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-	transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
-	will-change: transform;
+	transition:
+		transform 0.5s cubic-bezier(0.33, 1, 0.68, 1),
+		opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+	will-change: transform, opacity;
 	backface-visibility: hidden;
-	pointer-events: none;
-	opacity: 0;
-	z-index: 0;
-	transform: translateY(100%);
+	opacity: 1;
+	z-index: 3;
 }
 
-/* Current card (centered) */
+/* Current visible card (default state) */
 .current-card {
 	transform: translateY(0);
 	opacity: 1;
-	z-index: 3;
 	pointer-events: auto;
 }
 
-/* Previous and next cards (hidden) */
-.previous-card,
-.next-card {
-	opacity: 0;
-	transform: translateY(-100%);
-	z-index: -1;
-}
-
-/* When animating up (scrolling to next card) */
+/* When the card is animating to go up (to show next card) */
 .card-moving-up {
 	animation: moveUp 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
+/* When the card is animating to come from bottom (after moving to next) */
 .card-becoming-current-from-bottom {
 	animation: slideInFromBottom 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
-/* When animating down (scrolling to previous card) */
+/* When the card is animating to go down (to show previous card) */
 .card-moving-down {
 	animation: moveDown 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
+/* When the card is animating to come from top (after moving to previous) */
 .card-becoming-current-from-top {
 	animation: slideInFromTop 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
@@ -160,6 +153,14 @@
 	border-bottom: 3px solid #4b70e2;
 	border-right: 3px solid #4b70e2;
 	transform: translateX(-50%) rotate(45deg);
+}
+
+/* Styling for disabled scroll indicators */
+.scroll-indicator.disabled {
+	border-color: #ccc;
+	opacity: 0.3;
+	animation: none;
+	cursor: not-allowed;
 }
 
 /* Responsive */

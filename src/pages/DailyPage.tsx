@@ -1,394 +1,308 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-import Card, { CardProps } from '../components/Card';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
+import React, { useEffect, useState, useRef } from 'react';
 
 import './DailyPage.css';
+import { format, parseISO, addDays } from 'date-fns';
 
-const getAdjacentDate = (date: string, days: number): string => {
-	const currentDate = new Date(date);
-	currentDate.setDate(currentDate.getDate() + days);
-	return currentDate.toLocaleDateString('sv-SE', {
-		timeZone: 'Asia/Seoul',
-	});
-};
+import Card from '../components/Card';
 
-// Check if a date is in the future
-const isFutureDate = (dateStr: string): boolean => {
-	const date = new Date(dateStr);
-	const now = new Date();
-	now.setHours(0, 0, 0, 0);
-	return date.getTime() > now.getTime(); // 동일 날짜는 false 반환
-};
-
-const fetchSentenceByDate = async (
-	date: string,
-): Promise<CardProps | undefined> => {
-	console.log('fetch date', date);
-	try {
-		const res = await fetch(`/api/sentences/days/${date}`);
-		if (!res.ok) {
-			console.log(`${date} 데이터 없음: ${res.status}`);
-			return undefined;
-		}
-		return await res.json();
-	} catch (error) {
-		console.error(`${date} 데이터 가져오기 실패:`, error);
-		return undefined;
-	}
-};
+interface SentenceData {
+	date: string;
+	sentence: string;
+	meaning: string;
+	vocab: {
+		word: string;
+		definition: string;
+	}[];
+	videoUrl: string;
+}
 
 const DailyPage: React.FC = () => {
-	// Get today's date in local timezone, ensuring we get the full day properly
-	const today = new Date();
-	today.setHours(9, 0, 0, 0); // Set to 9 AM to avoid timezone issues
-	const todayStr = today.toLocaleDateString('sv-SE', {
-		timeZone: 'Asia/Seoul',
-	});
-
-	const [searchParams] = useSearchParams();
-	// Check if date parameter exists in the URL
-	const dateParam = searchParams.get('date');
-	const [currentDate, setCurrentDate] = useState<string>(dateParam || todayStr);
-
-	const queryClient = useQueryClient();
-	const carouselRef = useRef<HTMLDivElement>(null);
-	const [isScrolling, setIsScrolling] = useState(false);
-	const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
-	const [prevDirection, setPrevDirection] = useState<'up' | 'down' | null>(
-		null,
+	// States
+	const [currentData, setCurrentData] = useState<SentenceData | null>(null);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
+	const [currentDate, setCurrentDate] = useState<string>('');
+	const [canNavigatePrev, setCanNavigatePrev] = useState<boolean>(true);
+	const [canNavigateNext, setCanNavigateNext] = useState<boolean>(false);
+	const [cardClassName, setCardClassName] = useState<string>(
+		'carousel-card current-card',
 	);
-	const [isAnimating, setIsAnimating] = useState(false);
-	const [transitionState, setTransitionState] = useState<{
-		current: string;
-		prev: string;
-		next: string;
-	}>({
-		current: 'current-card',
-		prev: 'previous-card',
-		next: 'next-card',
-	});
 
-	const prevDate = getAdjacentDate(currentDate, -1);
-	const nextDate = getAdjacentDate(currentDate, 1);
-	const prevTwoDaysDate = getAdjacentDate(currentDate, -2);
-	const nextTwoDaysDate = getAdjacentDate(currentDate, 2);
+	// Refs for scroll handling
+	const containerRef = useRef<HTMLDivElement>(null);
+	const lastTouchY = useRef<number | null>(null);
+	const lastWheelTime = useRef<number>(0);
+	const lastTouchTime = useRef<number>(0);
+	const isAnimating = useRef<boolean>(false);
 
-	// Update current date when URL parameter changes
-	useEffect(() => {
-		if (dateParam) {
-			setCurrentDate(dateParam);
-		}
-	}, [dateParam]);
-
-	// Pre-fetch several past and future days on initial load
-	useEffect(() => {
-		const fetchAdjacentDays = async () => {
-			const date = currentDate;
-			// Prefetch 10 days before today
-			for (let i = 1; i <= 10; i++) {
-				const pastDate = getAdjacentDate(date, -i);
-				queryClient.prefetchQuery({
-					queryKey: ['sentence', pastDate],
-					queryFn: () => fetchSentenceByDate(pastDate),
-				});
-			}
-
-			// Prefetch 3 days after today (if they exist)
-			for (let i = 1; i <= 3; i++) {
-				const futureDate = getAdjacentDate(date, i);
-				queryClient.prefetchQuery({
-					queryKey: ['sentence', futureDate],
-					queryFn: () => fetchSentenceByDate(futureDate),
-				});
-			}
-		};
-
-		fetchAdjacentDays();
-	}, [queryClient, currentDate]);
-
-	// Load current and adjacent cards
-	const { data: currentData, isLoading: isCurrentLoading } = useQuery({
-		queryKey: ['sentence', currentDate],
-		queryFn: () => fetchSentenceByDate(currentDate),
-	});
-
-	const { data: prevData } = useQuery({
-		queryKey: ['sentence', prevDate],
-		queryFn: () => fetchSentenceByDate(prevDate),
-	});
-
-	const { data: nextData } = useQuery({
-		queryKey: ['sentence', nextDate],
-		queryFn: () => fetchSentenceByDate(nextDate),
-	});
-
-	// Prefetch two days away in both directions
-	useQuery({
-		queryKey: ['sentence', prevTwoDaysDate],
-		queryFn: () => fetchSentenceByDate(prevTwoDaysDate),
-		enabled: !!prevData,
-	});
-
-	useQuery({
-		queryKey: ['sentence', nextTwoDaysDate],
-		queryFn: () => fetchSentenceByDate(nextTwoDaysDate),
-		enabled: !!nextData,
-	});
-
-	const prefetchAdjacentData = (date: string) => {
-		queryClient.prefetchQuery({
-			queryKey: ['sentence', date],
-			queryFn: () => fetchSentenceByDate(date),
-		});
+	// Get adjusted today's date at 9am to avoid timezone issues
+	const getTodayDate = (): string => {
+		const today = new Date();
+		today.setHours(9, 0, 0, 0);
+		return format(today, 'yyyy-MM-dd');
 	};
 
-	const handlePrevCard = () => {
-		if (prevData && !isScrolling && !isAnimating) {
-			setIsScrolling(true);
-			setIsAnimating(true);
-			setPrevDirection('up');
+	// Helper function to check if a date is in the future
+	const isFutureDate = (dateString: string): boolean => {
+		const today = getTodayDate();
+		return dateString > today;
+	};
 
-			// Set animation classes for the transition
-			setTransitionState({
-				current: 'card-moving-down',
-				prev: 'card-becoming-current-from-top',
-				next: 'next-card',
-			});
+	// Function to get adjacent date (prev or next)
+	const getAdjacentDate = (direction: 'prev' | 'next'): string => {
+		// Parse the date string to ensure consistent date handling
+		const currentDateObj = parseISO(currentDate);
+		const newDate =
+			direction === 'prev'
+				? addDays(currentDateObj, -1)
+				: addDays(currentDateObj, 1);
 
-			// Allow animation to start before changing data
-			setTimeout(() => {
+		return format(newDate, 'yyyy-MM-dd');
+	};
+
+	// Function to fetch data for a specific date
+	const fetchData = async (date: string) => {
+		try {
+			setIsLoading(true);
+			const response = await fetch(`/api/sentences/daily/${date}`);
+
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+
+			const data = await response.json();
+			return data;
+		} catch (err) {
+			setError('Could not fetch data. Please try again later.');
+			console.error('Fetch error:', err);
+			return null;
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	// Get appropriate card class based on animation state
+	const getCardClass = (): string => {
+		return cardClassName;
+	};
+
+	// Navigate to previous card/date
+	const handlePrevCard = async () => {
+		if (isAnimating.current || !canNavigatePrev) return;
+		isAnimating.current = true;
+
+		// Start animation to move current card down
+		setCardClassName('carousel-card card-moving-down');
+
+		// Calculate the previous date
+		const prevDate = getAdjacentDate('prev');
+
+		// Fetch previous data
+		const prevData = await fetchData(prevDate);
+
+		// After animation duration, update state with new data
+		setTimeout(async () => {
+			if (prevData) {
 				setCurrentDate(prevDate);
-				prefetchAdjacentData(getAdjacentDate(prevDate, -1));
+				setCurrentData(prevData);
 
-				// Reset animation classes after transition
+				// Update navigation flags
+				setCanNavigateNext(true); // We can always go forward after going back
+
+				// Reset card class for entry animation
+				setCardClassName('carousel-card card-becoming-current-from-top');
+
+				// Reset animation flag after animation completes
 				setTimeout(() => {
-					setTransitionState({
-						current: 'current-card',
-						prev: 'previous-card',
-						next: 'next-card',
-					});
-					setIsAnimating(false);
-					setPrevDirection(null);
-				}, 500); // Match CSS animation duration
-
-				if (scrollTimeout.current) {
-					clearTimeout(scrollTimeout.current);
-				}
-				scrollTimeout.current = setTimeout(() => {
-					setIsScrolling(false);
-				}, 600); // Slightly longer to ensure everything completes
-			}, 20); // Keep short delay for smooth start
-		}
+					setCardClassName('carousel-card current-card');
+					isAnimating.current = false;
+				}, 500);
+			} else {
+				// In case of error, revert to original state
+				setCardClassName('carousel-card current-card');
+				isAnimating.current = false;
+			}
+		}, 500);
 	};
 
-	const handleNextCard = () => {
-		if (nextData && !isScrolling && !isAnimating) {
-			setIsScrolling(true);
-			setIsAnimating(true);
-			setPrevDirection('down');
+	// Navigate to next card/date
+	const handleNextCard = async () => {
+		if (isAnimating.current || !canNavigateNext) return;
+		isAnimating.current = true;
 
-			// Set animation classes for the transition
-			setTransitionState({
-				current: 'card-moving-up',
-				prev: 'previous-card',
-				next: 'card-becoming-current-from-bottom',
-			});
+		// Start animation to move current card up
+		setCardClassName('carousel-card card-moving-up');
 
-			// Allow animation to start before changing data
-			setTimeout(() => {
+		// Calculate the next date
+		const nextDate = getAdjacentDate('next');
+
+		// Fetch next data
+		const nextData = await fetchData(nextDate);
+
+		// After animation duration, update state with new data
+		setTimeout(async () => {
+			if (nextData) {
 				setCurrentDate(nextDate);
-				prefetchAdjacentData(getAdjacentDate(nextDate, 1));
+				setCurrentData(nextData);
 
-				// Reset animation classes after transition
+				// Update navigation flags
+				const isNextDateFuture = isFutureDate(nextDate);
+				setCanNavigateNext(!isNextDateFuture);
+
+				// Reset card class for entry animation
+				setCardClassName('carousel-card card-becoming-current-from-bottom');
+
+				// Reset animation flag after animation completes
 				setTimeout(() => {
-					setTransitionState({
-						current: 'current-card',
-						prev: 'previous-card',
-						next: 'next-card',
-					});
-					setIsAnimating(false);
-					setPrevDirection(null);
-				}, 500); // Match CSS animation duration
-
-				if (scrollTimeout.current) {
-					clearTimeout(scrollTimeout.current);
-				}
-				scrollTimeout.current = setTimeout(() => {
-					setIsScrolling(false);
-				}, 600); // Slightly longer to ensure everything completes
-			}, 20); // Keep short delay for smooth start
-		}
+					setCardClassName('carousel-card current-card');
+					isAnimating.current = false;
+				}, 500);
+			} else {
+				// In case of error, revert to original state
+				setCardClassName('carousel-card current-card');
+				isAnimating.current = false;
+			}
+		}, 500);
 	};
 
-	// Touch handling for swipe
-	const [touchStart, setTouchStart] = useState<number | null>(null);
-	const [touchEnd, setTouchEnd] = useState<number | null>(null);
-	const minSwipeDistance = 40; // Reduced for better sensitivity
-
+	// Touch event handlers
 	const onTouchStart = (e: React.TouchEvent) => {
-		setTouchEnd(null);
-		setTouchStart(e.targetTouches[0].clientY);
+		lastTouchY.current = e.touches[0].clientY;
+		lastTouchTime.current = Date.now();
 	};
 
 	const onTouchMove = (e: React.TouchEvent) => {
-		setTouchEnd(e.targetTouches[0].clientY);
-	};
+		if (isAnimating.current || !lastTouchY.current) return;
 
-	const onTouchEnd = () => {
-		if (!touchStart || !touchEnd) return;
+		const currentY = e.touches[0].clientY;
+		const diffY = currentY - lastTouchY.current;
 
-		const distance = touchStart - touchEnd;
-		const isSwipeDown = distance < -minSwipeDistance;
-		const isSwipeUp = distance > minSwipeDistance;
-
-		console.log('Swipe distance:', distance);
-
-		if (isSwipeDown) {
-			console.log('Swiped down, going to previous card');
-			handlePrevCard();
-		} else if (isSwipeUp && nextData) {
-			// Only allow swiping up if there's next data and it's not a future date
-			if (!isFutureDate(nextDate)) {
-				console.log('Swiped up, going to next card');
-				handleNextCard();
-			} else {
-				console.log('Cannot swipe to future date');
-			}
+		// Prevent default scrolling when handling our swipe
+		if (Math.abs(diffY) > 10) {
+			e.preventDefault();
 		}
 	};
 
-	// Handle mouse wheel scrolling
-	const handleWheel = (e: React.WheelEvent) => {
-		// Prevent default to avoid scrolling the page
-		e.preventDefault();
+	const onTouchEnd = (e: React.TouchEvent) => {
+		if (isAnimating.current || !lastTouchY.current) return;
 
-		if (isScrolling || isAnimating) return;
+		const currentY = e.changedTouches[0].clientY;
+		const diffY = currentY - lastTouchY.current;
+		const timeDiff = Date.now() - lastTouchTime.current;
 
-		// Check for scroll direction
-		if (e.deltaY < 0) {
-			// Scrolling up - show previous card
-			console.log('Scrolling up, going to previous card');
+		// Threshold for minimum time between events
+		if (timeDiff < 300) {
+			lastTouchY.current = null;
+			return;
+		}
+
+		// Reset for next touch
+		lastTouchY.current = null;
+
+		// Threshold for swipe distance
+		if (Math.abs(diffY) < 50) return;
+
+		if (diffY > 0 && canNavigatePrev) {
+			// Swipe down, go to previous
 			handlePrevCard();
-		} else if (
-			e.deltaY > 0 &&
-			nextData &&
-			(!isFutureDate(nextDate) || nextDate === todayStr)
-		) {
-			// Scrolling down - show next card only if it's not a future date
-			console.log('Scrolling down, going to next card');
+		} else if (diffY < 0 && canNavigateNext) {
+			// Swipe up, go to next
 			handleNextCard();
 		}
 	};
 
-	// Get appropriate class for previous card
-	const getPrevCardClass = () => {
-		const baseClass = 'carousel-card';
-		if (isAnimating && prevDirection === 'up') {
-			return `${baseClass} ${transitionState.prev}`;
+	// Mouse wheel event handler
+	const handleWheel = (e: WheelEvent) => {
+		if (isAnimating.current) return;
+
+		const now = Date.now();
+		if (now - lastWheelTime.current < 500) return; // Prevent rapid scrolling
+
+		lastWheelTime.current = now;
+
+		if (e.deltaY < 0 && canNavigatePrev) {
+			// Scrolling up, go to previous
+			handlePrevCard();
+		} else if (e.deltaY > 0 && canNavigateNext) {
+			// Scrolling down, go to next
+			handleNextCard();
 		}
-		if (isAnimating && prevDirection === 'down') {
-			return `${baseClass} card-entering-prev`;
-		}
-		return `${baseClass} previous-card`;
 	};
 
-	// Get appropriate class for next card
-	const getNextCardClass = () => {
-		const baseClass = 'carousel-card';
-		if (isAnimating && prevDirection === 'down') {
-			return `${baseClass} ${transitionState.next}`;
-		}
-		if (isAnimating && prevDirection === 'up') {
-			return `${baseClass} card-entering-next`;
-		}
-		return `${baseClass} next-card`;
-	};
+	// Initial data load
+	useEffect(() => {
+		const loadInitialData = async () => {
+			const today = getTodayDate();
+			setCurrentDate(today);
 
-	// Check if we can show the next card
-	const canShowNextCard = () => {
-		const isToday = nextDate === todayStr;
-		return nextData != null && (!isFutureDate(nextDate) || isToday);
-	};
+			const data = await fetchData(today);
+			if (data) {
+				setCurrentData(data);
+				// Since we're at today's date, we can go backwards but not forwards
+				setCanNavigatePrev(true);
+				setCanNavigateNext(false);
+			}
+		};
 
-	// Get appropriate class for current card
-	const getCurrentCardClass = () => {
-		const baseClass = 'carousel-card';
-		if (isAnimating) {
-			return `${baseClass} ${transitionState.current}`;
+		loadInitialData();
+	}, []);
+
+	// Set up wheel event listener
+	useEffect(() => {
+		const currentContainer = containerRef.current;
+
+		if (currentContainer) {
+			currentContainer.addEventListener('wheel', handleWheel, {
+				passive: false,
+			});
 		}
-		return `${baseClass} current-card`;
-	};
 
+		return () => {
+			if (currentContainer) {
+				currentContainer.removeEventListener('wheel', handleWheel);
+			}
+		};
+	}, [canNavigatePrev, canNavigateNext]);
+
+	// Render component
 	return (
-		<div className="app">
-			<Header />
-			<main className="main-content">
-				{isCurrentLoading ? (
-					<p>로딩 중...</p>
-				) : (
-					<div
-						className="card-carousel"
-						ref={carouselRef}
-						onTouchStart={onTouchStart}
-						onTouchMove={onTouchMove}
-						onTouchEnd={onTouchEnd}
-						onWheel={handleWheel}
-					>
-						{/* Previous card (hidden but needed for animation) */}
-						{prevData && (
-							<div className={getPrevCardClass()}>
-								<Card
-									date={prevData.date}
-									sentence={prevData.sentence}
-									meaning={prevData.meaning}
-									vocab={prevData.vocab}
-									videoUrl={prevData.videoUrl}
-								/>
-							</div>
-						)}
-
-						{/* Current visible card */}
-						{currentData && (
-							<div className={getCurrentCardClass()}>
-								<Card
-									date={currentData.date}
-									sentence={currentData.sentence}
-									meaning={currentData.meaning}
-									vocab={currentData.vocab}
-									videoUrl={currentData.videoUrl}
-								/>
-							</div>
-						)}
-
-						{/* Next card (hidden but needed for animation) */}
-						{canShowNextCard() && (
-							<div className={getNextCardClass()}>
-								<Card
-									date={nextData!.date}
-									sentence={nextData!.sentence}
-									meaning={nextData!.meaning}
-									vocab={nextData!.vocab}
-									videoUrl={nextData!.videoUrl}
-								/>
-							</div>
-						)}
-
-						{/* Scroll indicators container */}
-						<div className="scroll-indicator-container">
-							{prevData && <div className="scroll-indicator scroll-up"></div>}
-							{canShowNextCard() && (
-								<div className="scroll-indicator scroll-down"></div>
-							)}
-						</div>
+		<div className="main-content">
+			<div
+				className="card-carousel"
+				ref={containerRef}
+				onTouchStart={onTouchStart}
+				onTouchMove={onTouchMove}
+				onTouchEnd={onTouchEnd}
+			>
+				{/* Current Card */}
+				{currentData && (
+					<div className={getCardClass()}>
+						<Card
+							date={currentData.date}
+							sentence={currentData.sentence}
+							meaning={currentData.meaning}
+							vocab={currentData.vocab}
+							videoUrl={currentData.videoUrl}
+						/>
 					</div>
 				)}
-			</main>
-			<Footer />
+
+				{/* Loading state */}
+				{isLoading && <div className="loading">Loading...</div>}
+
+				{/* Error state */}
+				{error && <div className="error">{error}</div>}
+
+				{/* Scroll indicators */}
+				<div className="scroll-indicator-container">
+					<div
+						className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
+					></div>
+					<div
+						className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
+					></div>
+				</div>
+			</div>
 		</div>
 	);
 };
