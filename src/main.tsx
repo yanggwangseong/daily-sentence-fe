@@ -160,3 +160,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 		</QueryClientProvider>
 	</React.StrictMode>,
 );
+
+track('Debug Setup Ping', {
+	triggered_from: 'main',
+});
