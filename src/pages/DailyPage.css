@@ -31,10 +31,10 @@
 /* Single card with different animation states */
 .carousel-card {
 	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+	left: 50%;
 	width: 100%;
 	max-width: 100%;
+	transform: translateX(-50%);
 	background-color: white;
 	border-radius: 16px;
 	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
@@ -48,73 +48,91 @@
 }
 
 /* Current visible card (default state) */
-.current-card {
-	transform: translateY(-50%);
+.carousel-card.current-card {
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	opacity: 1;
 	pointer-events: auto;
 }
 
 /* When the card is animating to go up (to show next card) */
-.card-moving-up {
-	animation: moveUp 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+.carousel-card.card-moving-up {
+	animation: moveUp 0.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* When the card is animating to come from bottom (after moving to next) */
-.card-becoming-current-from-bottom {
-	animation: slideInFromBottom 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+.carousel-card.card-becoming-current-from-bottom {
+	animation: slideInFromBottom 0.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* When the card is animating to go down (to show previous card) */
-.card-moving-down {
-	animation: moveDown 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+.carousel-card.card-moving-down {
+	animation: moveDown 0.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* When the card is animating to come from top (after moving to previous) */
-.card-becoming-current-from-top {
-	animation: slideInFromTop 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+.carousel-card.card-becoming-current-from-top {
+	animation: slideInFromTop 0.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* Animations */
 @keyframes moveUp {
 	from {
-		transform: translateY(-50%);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(-150%);
+		top: 0;
+		left: 50%;
+		transform: translate(-50%, -100%);
 		opacity: 0;
 	}
 }
 
 @keyframes moveDown {
 	from {
-		transform: translateY(-50%);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		opacity: 1;
 	}
 	to {
-		transform: translateY(50%);
+		top: 100%;
+		left: 50%;
+		transform: translate(-50%, 0);
 		opacity: 0;
 	}
 }
 
 @keyframes slideInFromBottom {
 	from {
-		transform: translateY(50%);
+		top: 100%;
+		left: 50%;
+		transform: translate(-50%, 0);
 		opacity: 0;
 	}
 	to {
-		transform: translateY(-50%);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		opacity: 1;
 	}
 }
 
 @keyframes slideInFromTop {
 	from {
-		transform: translateY(-150%);
+		top: 0;
+		left: 50%;
+		transform: translate(-50%, -100%);
 		opacity: 0;
 	}
 	to {
-		transform: translateY(-50%);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		opacity: 1;
 	}
 }
