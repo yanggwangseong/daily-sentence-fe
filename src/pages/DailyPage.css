@@ -9,60 +9,132 @@
 	position: relative;
 }
 
-/* Card Carousel Styles */
+/* Carousel container */
 .card-carousel {
 	position: relative;
 	height: 75vh;
-	overflow: hidden;
 	margin: 20px 0;
 	touch-action: none;
-	perspective: 1200px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	overflow: hidden;
+	perspective: 1500px;
 }
 
+/* Base style for cards */
 .carousel-card {
 	position: absolute;
 	width: 100%;
 	max-width: 100%;
-	height: auto;
-	transition:
-		transform 0.6s ease-in-out,
-		opacity 0.5s ease-in-out;
-	left: 0;
-	right: 0;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-	border-radius: 16px;
 	background-color: white;
-	backface-visibility: hidden;
+	border-radius: 16px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+	transition:
+		transform 0.7s cubic-bezier(0.33, 1, 0.68, 1),
+		opacity 0.5s ease;
 	will-change: transform, opacity;
-	z-index: 1;
-	opacity: 0;
-	transform: translateY(100%) scale(0.9);
+	backface-visibility: hidden;
 	pointer-events: none;
+	opacity: 0;
+	z-index: 0;
+	transform: scale(0.92) translateY(100%);
 }
 
+/* Current card (centered) */
 .current-card {
-	z-index: 3;
+	transform: scale(1) translateY(0);
 	opacity: 1;
-	transform: translateY(0) scale(1);
+	z-index: 3;
 	pointer-events: auto;
 }
 
+/* Previous card (top, behind) */
 .previous-card {
-	z-index: 2;
+	transform: scale(0.92) translateY(-100%);
 	opacity: 0.6;
-	transform: translateY(-100%) scale(0.92);
+	z-index: 2;
+	filter: blur(0.6px);
 }
 
+/* Next card (bottom, behind) */
 .next-card {
-	z-index: 2;
+	transform: scale(0.92) translateY(100%);
 	opacity: 0.6;
-	transform: translateY(100%) scale(0.92);
+	z-index: 2;
+	filter: blur(0.6px);
 }
 
-/* Visual indicators */
+/* When animating up (scrolling to next card) */
+.card-moving-up {
+	animation: moveUpToBack 0.8s ease forwards;
+}
+
+.card-becoming-current-from-bottom {
+	animation: riseUpToCurrent 0.8s ease forwards;
+}
+
+/* When animating down (scrolling to previous card) */
+.card-moving-down {
+	animation: moveDownToBack 0.8s ease forwards;
+}
+
+.card-becoming-current-from-top {
+	animation: fallDownToCurrent 0.8s ease forwards;
+}
+
+/* Animations */
+@keyframes moveUpToBack {
+	from {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(-100%) scale(0.92);
+		opacity: 0.6;
+		filter: blur(0.6px);
+	}
+}
+
+@keyframes moveDownToBack {
+	from {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(100%) scale(0.92);
+		opacity: 0.6;
+		filter: blur(0.6px);
+	}
+}
+
+@keyframes riseUpToCurrent {
+	from {
+		transform: translateY(100%) scale(0.92);
+		opacity: 0.6;
+		filter: blur(0.6px);
+	}
+	to {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+		filter: blur(0);
+	}
+}
+
+@keyframes fallDownToCurrent {
+	from {
+		transform: translateY(-100%) scale(0.92);
+		opacity: 0.6;
+		filter: blur(0.6px);
+	}
+	to {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+		filter: blur(0);
+	}
+}
+
+/* Scroll indicators */
 .scroll-indicator {
 	position: absolute;
 	width: 30px;
@@ -114,7 +186,7 @@
 	}
 }
 
-/* Responsive Adjustments */
+/* Responsive */
 @media (min-width: 768px) {
 	.main-content {
 		max-width: 768px;
