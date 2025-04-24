@@ -1,9 +1,10 @@
 .daily-english-card {
 	background-color: white;
 	border-radius: 16px;
-	padding: 24px 20px;
+	padding: 28px 24px;
 	margin: 0;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+	border: 1px solid rgba(75, 107, 251, 0.1);
 	width: 100%;
 	box-sizing: border-box;
 	display: flex;
@@ -157,6 +158,6 @@
 
 @media (min-width: 768px) {
 	.daily-english-card {
-		padding: 32px;
+		padding: 36px;
 	}
 }
