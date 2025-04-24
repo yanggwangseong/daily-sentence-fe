@@ -64,7 +64,7 @@ const DailyPage: React.FC = () => {
 	const fetchData = async (date: string) => {
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/sentences/daily/${date}`);
+			const response = await fetch(`/api/sentences/days/${date}`);
 
 			if (!response.ok) {
 				throw new Error('Network response was not ok');
