@@ -31,6 +31,7 @@ const DailyPage: React.FC = () => {
 	const lastWheelTime = useRef<number>(0);
 	const lastTouchTime = useRef<number>(0);
 	const isAnimating = useRef<boolean>(false);
+	const currentDateRef = useRef<string>('');
 	let scrollBlockTimer: NodeJS.Timeout | null = null;
 
 	const blockFurtherScroll = () => {
@@ -52,15 +53,18 @@ const DailyPage: React.FC = () => {
 		return dateString > today;
 	};
 
-	const getAdjacentDate = (direction: 'prev' | 'next'): string => {
-		if (!currentDate) return getTodayDate();
+	const getAdjacentDate = (
+		direction: 'prev' | 'next',
+		baseDate: string = currentDate,
+	): string => {
+		if (!baseDate) return getTodayDate();
 		try {
-			const currentDateObj = parseISO(currentDate);
-			if (isNaN(currentDateObj.getTime())) return getTodayDate();
+			const baseDateObj = parseISO(baseDate);
+			if (isNaN(baseDateObj.getTime())) return getTodayDate();
 			const newDate =
 				direction === 'prev'
-					? addDays(currentDateObj, -1)
-					: addDays(currentDateObj, 1);
+					? addDays(baseDateObj, -1)
+					: addDays(baseDateObj, 1);
 			return format(newDate, 'yyyy-MM-dd');
 		} catch {
 			return getTodayDate();
@@ -88,7 +92,7 @@ const DailyPage: React.FC = () => {
 		if (isAnimating.current || !canNavigatePrev) return;
 		blockFurtherScroll();
 
-		const prevDate = getAdjacentDate('prev');
+		const prevDate = getAdjacentDate('prev', currentDateRef.current);
 		setCardClassName('carousel-card card-moving-down');
 
 		const prevData = await fetchData(prevDate);
@@ -98,6 +102,7 @@ const DailyPage: React.FC = () => {
 		}
 
 		setTimeout(() => {
+			currentDateRef.current = prevDate;
 			setCurrentDate(prevDate);
 			setCurrentData(prevData);
 			setCanNavigateNext(true);
@@ -113,7 +118,7 @@ const DailyPage: React.FC = () => {
 		if (isAnimating.current || !canNavigateNext) return;
 		blockFurtherScroll();
 
-		const nextDate = getAdjacentDate('next');
+		const nextDate = getAdjacentDate('next', currentDateRef.current);
 		setCardClassName('carousel-card card-moving-up');
 
 		const nextData = await fetchData(nextDate);
@@ -123,6 +128,7 @@ const DailyPage: React.FC = () => {
 		}
 
 		setTimeout(() => {
+			currentDateRef.current = nextDate;
 			setCurrentDate(nextDate);
 			setCurrentData(nextData);
 			setCanNavigateNext(!isFutureDate(nextDate));
@@ -159,6 +165,7 @@ const DailyPage: React.FC = () => {
 
 	useEffect(() => {
 		const today = getTodayDate();
+		currentDateRef.current = today;
 		setCurrentDate(today);
 		fetchData(today).then((data) => {
 			if (data) {
@@ -182,7 +189,13 @@ const DailyPage: React.FC = () => {
 				currentContainer.removeEventListener('wheel', handleWheel);
 			}
 		};
-	}, [canNavigatePrev, canNavigateNext]);
+	}, [canNavigatePrev, canNavigateNext, currentDate]);
+
+	useEffect(() => {
+		if (currentDate) {
+			currentDateRef.current = currentDate;
+		}
+	}, [currentDate]);
 
 	return (
 		<div className="page-container">
