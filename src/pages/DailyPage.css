@@ -28,7 +28,6 @@
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
 	border-radius: 16px;
 	background-color: white;
-	padding: 16px;
 	overflow: hidden;
 	backface-visibility: hidden; /* Prevent flickering during animations */
 	will-change: transform, opacity; /* Optimize for animations */
