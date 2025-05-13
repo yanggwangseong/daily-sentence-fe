@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 
 import './WeeklyPage.css';
+import { API_BASE_URL } from '@/constants/env-file';
 
 interface SentenceData {
 	date: string;
@@ -23,7 +24,7 @@ const fetchWeeklySentences = async (
 ): Promise<SentenceData[]> => {
 	try {
 		// Use the new API endpoint for weekly data
-		const res = await fetch(`/api/sentences/weeklys/${startDate}`);
+		const res = await fetch(`${API_BASE_URL}/sentences/weeklys/${startDate}`);
 		if (!res.ok) {
 			console.error(`Weekly data fetch failed: ${res.status}`);
 			return [];
@@ -85,7 +86,9 @@ const WeeklyPage = () => {
 			});
 
 			try {
-				const res = await fetch(`/api/sentences/weeklys/${prevWeekStr}`);
+				const res = await fetch(
+					`${API_BASE_URL}/sentences/weeklys/${prevWeekStr}`,
+				);
 				const data = await res.json();
 				setCanGoToPrevWeek(res.ok && data && data.length > 0);
 			} catch (error) {

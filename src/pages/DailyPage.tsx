@@ -7,6 +7,8 @@ import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 
+import { API_BASE_URL } from '@/constants/env-file';
+
 interface SentenceData {
 	date: string;
 	sentence: string;
@@ -74,7 +76,7 @@ const DailyPage: React.FC = () => {
 	const fetchData = async (date: string) => {
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/sentences/days/${date}`);
+			const response = await fetch(`${API_BASE_URL}/sentences/days/${date}`);
 			if (!response.ok) throw new Error('Fetch failed');
 			const data = await response.json();
 			return data;

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { track } from '@amplitude/analytics-browser';
 
 import './ActionButtons.css';
+import { API_BASE_URL } from '@/constants/env-file';
 
 interface SubscriptionModal {
 	isOpen: boolean;
@@ -81,7 +82,7 @@ const ActionButtons: React.FC = () => {
 
 		try {
 			const response = await fetch(
-				`/api/subscribers/${encodeURIComponent(modal.email)}`,
+				`${API_BASE_URL}/subscribers/${encodeURIComponent(modal.email)}`,
 				{
 					method: 'POST',
 					headers: {
