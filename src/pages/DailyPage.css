@@ -138,19 +138,10 @@
 }
 
 /* Scroll indicators */
-.scroll-indicator-container {
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-	bottom: 0;
-	z-index: 20;
-	pointer-events: none;
-}
-
 .scroll-indicator {
 	position: absolute;
 	left: 50%;
+	transform: translateX(-50%);
 	width: 36px;
 	height: 36px;
 	opacity: 0.9;
@@ -176,8 +167,7 @@
 }
 
 .scroll-up {
-	top: 10vh;
-	transform: translateX(-50%);
+	top: -15px;
 }
 
 .scroll-up:before {
@@ -185,8 +175,7 @@
 }
 
 .scroll-down {
-	bottom: 10vh;
-	transform: translateX(-50%);
+	bottom: -15px;
 }
 
 .scroll-down:before {
@@ -223,15 +212,6 @@
 
 	.card-carousel {
 		height: 85vh;
-	}
-
-	/* 데스크탑에서의 스크롤 인디케이터 위치 조정 */
-	.scroll-up {
-		top: 12vh;
-	}
-
-	.scroll-down {
-		bottom: 12vh;
 	}
 }
 

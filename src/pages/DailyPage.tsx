@@ -231,33 +231,31 @@ const DailyPage: React.FC = () => {
 				>
 					{currentData && (
 						<div className={getCardClass()}>
+							<div
+								className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
+								onClick={canNavigatePrev ? handlePrevCard : undefined}
+							></div>
 							<Card {...currentData} />
+							<div
+								className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
+								onClick={
+									canNavigateNext
+										? () => {
+												const nextDate = getAdjacentDate(
+													'next',
+													currentDateRef.current,
+												);
+												if (!isFutureDate(nextDate)) {
+													handleNextCard();
+												}
+											}
+										: undefined
+								}
+							></div>
 						</div>
 					)}
 					{isLoading && <div className="loading">Loading...</div>}
 					{error && <div className="error">{error}</div>}
-					<div className="scroll-indicator-container">
-						<div
-							className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
-							onClick={canNavigatePrev ? handlePrevCard : undefined}
-						></div>
-						<div
-							className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
-							onClick={
-								canNavigateNext
-									? () => {
-											const nextDate = getAdjacentDate(
-												'next',
-												currentDateRef.current,
-											);
-											if (!isFutureDate(nextDate)) {
-												handleNextCard();
-											}
-										}
-									: undefined
-							}
-						></div>
-					</div>
 				</div>
 			</div>
 			<Footer />
