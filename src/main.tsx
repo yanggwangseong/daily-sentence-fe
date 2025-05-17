@@ -21,14 +21,16 @@ declare global {
 }
 
 // Amplitude 초기화 및 추가 설정
-init(import.meta.env.VITE_AMPLITUDE_API_KEY, {
-	autocapture: true,
-	trackingOptions: {
-		ipAddress: true,
-		language: true,
-		platform: true,
-	},
-});
+if (import.meta.env.MODE !== 'development') {
+	init(import.meta.env.VITE_AMPLITUDE_API_KEY, {
+		autocapture: true,
+		trackingOptions: {
+			ipAddress: true,
+			language: true,
+			platform: true,
+		},
+	});
+}
 
 // UTM 파라미터 추적 설정
 function trackUTMParameters() {
