@@ -145,13 +145,17 @@
 	width: 36px;
 	height: 36px;
 	opacity: 0.9;
-	transition: all 0.2s ease;
+	transition:
+		transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+		box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+		background 0.15s;
 	cursor: pointer;
 	pointer-events: auto;
 	z-index: 25;
 	background-color: rgba(255, 255, 255, 0.95);
 	border-radius: 50%;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+	will-change: transform, box-shadow;
 }
 
 .scroll-indicator:before {
@@ -182,9 +186,67 @@
 	transform: translate(-50%, -50%) rotate(225deg);
 }
 
+/* 클릭(활성) 시: 살짝 커졌다가 원래대로 */
+.scroll-indicator:active {
+	transform: translateX(-50%) scale(0.92);
+	background: #e6edff;
+	box-shadow: 0 2px 16px rgba(75, 112, 226, 0.18);
+}
+
+/* 호버 시: 색상 강조 */
 .scroll-indicator:hover {
-	transform: translateX(-50%) scale(1.1);
-	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	background: #e6edff;
+	box-shadow: 0 4px 18px rgba(75, 112, 226, 0.22);
+	transform: translateX(-50%) scale(1.08);
+}
+
+/* 주기적 bounce 애니메이션 */
+@keyframes bounce-up {
+	0%,
+	100% {
+		transform: translateX(-50%) scale(1);
+	}
+	20% {
+		transform: translateX(-50%) translateY(-10px) scale(1.12);
+	}
+	40% {
+		transform: translateX(-50%) scale(0.96);
+	}
+	60% {
+		transform: translateX(-50%) scale(1.06);
+	}
+	80% {
+		transform: translateX(-50%) scale(0.98);
+	}
+}
+
+@keyframes bounce-down {
+	0%,
+	100% {
+		transform: translateX(-50%) scale(1);
+	}
+	20% {
+		transform: translateX(-50%) translateY(10px) scale(1.12);
+	}
+	40% {
+		transform: translateX(-50%) scale(0.96);
+	}
+	60% {
+		transform: translateX(-50%) scale(1.06);
+	}
+	80% {
+		transform: translateX(-50%) scale(0.98);
+	}
+}
+
+.scroll-indicator.scroll-up {
+	animation: bounce-up 2.5s infinite;
+	animation-delay: 0.5s;
+}
+
+.scroll-indicator.scroll-down {
+	animation: bounce-down 2.5s infinite;
+	animation-delay: 0.5s;
 }
 
 /* Styling for disabled scroll indicators */
