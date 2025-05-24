@@ -104,6 +104,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 					headers: {
 						'Content-Type': 'application/json',
 					},
+					credentials: 'include',
 				},
 			);
 

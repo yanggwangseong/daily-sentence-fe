@@ -23,7 +23,9 @@ const fetchWeeklySentences = async (
 	startDate: string,
 ): Promise<SentenceData[]> => {
 	try {
-		const res = await fetch(`${API_BASE_URL}/sentences/weeklys/${startDate}`);
+		const res = await fetch(`${API_BASE_URL}/sentences/weeklys/${startDate}`, {
+			credentials: 'include',
+		});
 		if (!res.ok) {
 			console.error(`Weekly data fetch failed: ${res.status}`);
 			return [];
@@ -91,6 +93,9 @@ const WeeklyPage = () => {
 			try {
 				const res = await fetch(
 					`${API_BASE_URL}/sentences/weeklys/${prevWeekStr}`,
+					{
+						credentials: 'include',
+					},
 				);
 				const data = await res.json();
 				setCanGoToPrevWeek(

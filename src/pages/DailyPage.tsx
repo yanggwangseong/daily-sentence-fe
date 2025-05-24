@@ -89,7 +89,9 @@ const DailyPage: React.FC = () => {
 	const fetchData = async (date: string) => {
 		try {
 			setIsLoading(true);
-			const response = await fetch(`${API_BASE_URL}/sentences/days/${date}`);
+			const response = await fetch(`${API_BASE_URL}/sentences/days/${date}`, {
+				credentials: 'include',
+			});
 			if (!response.ok) throw new Error('Fetch failed');
 			const data = await response.json();
 			if (data && data.success && data.data) {
@@ -311,6 +313,7 @@ const DailyPage: React.FC = () => {
 					headers: {
 						'Content-Type': 'application/json',
 					},
+					credentials: 'include',
 				},
 			);
 			if (response.status === 409) {
