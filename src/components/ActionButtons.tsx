@@ -1,24 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { track } from '@amplitude/analytics-browser';
 
 import './ActionButtons.css';
+import SubscriptionModal from './SubscriptionModal';
 import { API_BASE_URL } from '@/constants/env-file';
 
-interface SubscriptionModal {
+interface SubscriptionModalState {
 	isOpen: boolean;
 	email: string;
 	status: 'idle' | 'submitting' | 'success' | 'error';
 	errorMessage: string;
 }
 
-const ActionButtons: React.FC = () => {
-	const [modal, setModal] = useState<SubscriptionModal>({
+interface ActionButtonsProps {
+	forceOpenModal?: boolean;
+	onModalClose?: () => void;
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = ({
+	forceOpenModal,
+	onModalClose,
+}) => {
+	const [modal, setModal] = useState<SubscriptionModalState>({
 		isOpen: false,
 		email: '',
 		status: 'idle',
 		errorMessage: '',
 	});
+
+	useEffect(() => {
+		if (forceOpenModal) {
+			setModal((prev) => ({ ...prev, isOpen: true }));
+		}
+	}, [forceOpenModal]);
 
 	const handleSubscribe = () => {
 		// CTR 측정을 위한 구독 버튼 클릭 이벤트 추적
@@ -44,6 +59,7 @@ const ActionButtons: React.FC = () => {
 			status: 'idle',
 			errorMessage: '',
 		});
+		if (onModalClose) onModalClose();
 	};
 
 	const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +141,8 @@ const ActionButtons: React.FC = () => {
 				return;
 			}
 
-			if (!response.ok) {
+			const data = await response.json();
+			if (!response.ok || !data.success) {
 				throw new Error('Subscription failed');
 			}
 
@@ -150,6 +167,7 @@ const ActionButtons: React.FC = () => {
 					status: 'idle',
 					errorMessage: '',
 				});
+				if (onModalClose) onModalClose();
 			}, 2000);
 		} catch (error) {
 			console.error('구독 요청 실패:', error);
@@ -191,54 +209,15 @@ const ActionButtons: React.FC = () => {
 				</button>
 			</div>
 
-			{modal.isOpen && (
-				<div className="subscription-modal-overlay">
-					<div className="subscription-modal">
-						<h3>구독하기</h3>
-						<p>
-							매주 월요일 아침, 지난 1주일간의 영어 문장을 이메일로
-							보내드립니다.
-						</p>
-
-						<div className="subscription-input-group">
-							<input
-								type="email"
-								placeholder="이메일 주소를 입력하세요"
-								value={modal.email}
-								onChange={handleEmailChange}
-								disabled={
-									modal.status === 'submitting' || modal.status === 'success'
-								}
-							/>
-							{modal.errorMessage && (
-								<div className="subscription-error">{modal.errorMessage}</div>
-							)}
-						</div>
-
-						<div className="subscription-button-group">
-							<button
-								className="subscription-button submit"
-								onClick={handleSubmitSubscription}
-								disabled={
-									modal.status === 'submitting' || modal.status === 'success'
-								}
-							>
-								{modal.status === 'submitting'
-									? '처리 중...'
-									: modal.status === 'success'
-										? '구독 완료!'
-										: '구독하기'}
-							</button>
-							<button
-								className="subscription-button cancel"
-								onClick={handleCloseModal}
-							>
-								닫기
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<SubscriptionModal
+				isOpen={modal.isOpen}
+				email={modal.email}
+				status={modal.status}
+				errorMessage={modal.errorMessage}
+				onEmailChange={handleEmailChange}
+				onSubmit={handleSubmitSubscription}
+				onClose={handleCloseModal}
+			/>
 		</div>
 	);
 };

@@ -6,6 +6,8 @@ import { format, parseISO, addDays } from 'date-fns';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
+import SubscribeCTAAlert from '../components/SubscribeCTAAlert';
+import SubscriptionModal from '../components/SubscriptionModal';
 
 import { API_BASE_URL } from '@/constants/env-file';
 
@@ -17,6 +19,8 @@ interface SentenceData {
 	videoUrl: string;
 }
 
+const CTA_STORAGE_KEY = 'hideSubscribeCTAUntil';
+
 const DailyPage: React.FC = () => {
 	const [currentData, setCurrentData] = useState<SentenceData | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -27,6 +31,13 @@ const DailyPage: React.FC = () => {
 	const [cardClassName, setCardClassName] = useState<string>(
 		'carousel-card current-card',
 	);
+	const [showCTA, setShowCTA] = useState(false);
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+	const [subscribeEmail, setSubscribeEmail] = useState('');
+	const [subscribeStatus, setSubscribeStatus] = useState<
+		'idle' | 'submitting' | 'success' | 'error'
+	>('idle');
+	const [subscribeError, setSubscribeError] = useState('');
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const lastTouchY = useRef<number | null>(null);
@@ -35,6 +46,8 @@ const DailyPage: React.FC = () => {
 	const isAnimating = useRef<boolean>(false);
 	const currentDateRef = useRef<string>('');
 	let scrollBlockTimer: NodeJS.Timeout | null = null;
+
+	const scrollHandlersRef = useRef<{ cleanup?: () => void }>({});
 
 	const blockFurtherScroll = () => {
 		if (scrollBlockTimer) clearTimeout(scrollBlockTimer);
@@ -79,7 +92,10 @@ const DailyPage: React.FC = () => {
 			const response = await fetch(`${API_BASE_URL}/sentences/days/${date}`);
 			if (!response.ok) throw new Error('Fetch failed');
 			const data = await response.json();
-			return data;
+			if (data && data.success && data.data) {
+				return data.data;
+			}
+			throw new Error('Invalid response');
 		} catch (err) {
 			setError('데이터를 불러올 수 없습니다.');
 			return null;
@@ -219,47 +235,166 @@ const DailyPage: React.FC = () => {
 		}
 	}, [currentDate]);
 
+	useEffect(() => {
+		const hideUntil = localStorage.getItem(CTA_STORAGE_KEY);
+		if (!hideUntil || new Date(hideUntil) < new Date()) {
+			const showCTAIfAllowed = () => {
+				setShowCTA(true);
+			};
+
+			const onWheel = () => {
+				showCTAIfAllowed();
+			};
+
+			const onTouchEnd = () => {
+				showCTAIfAllowed();
+			};
+
+			window.addEventListener('wheel', onWheel);
+			window.addEventListener('touchend', onTouchEnd);
+
+			scrollHandlersRef.current.cleanup = () => {
+				window.removeEventListener('wheel', onWheel);
+				window.removeEventListener('touchend', onTouchEnd);
+			};
+
+			return scrollHandlersRef.current.cleanup;
+		}
+	}, []);
+
+	const handleCTAClose = () => {
+		const nextShow = new Date();
+		nextShow.setDate(nextShow.getDate() + 7); // 7일 후
+		localStorage.setItem(CTA_STORAGE_KEY, nextShow.toISOString());
+		setShowCTA(false);
+		if (scrollHandlersRef.current.cleanup) {
+			scrollHandlersRef.current.cleanup();
+			scrollHandlersRef.current.cleanup = undefined;
+		}
+	};
+
+	const handleCTASubscribe = () => {
+		setShowCTA(false);
+		setShowSubscribeModal(true);
+	};
+
+	const handleSubscribeModalClose = () => {
+		setShowSubscribeModal(false);
+		setSubscribeEmail('');
+		setSubscribeStatus('idle');
+		setSubscribeError('');
+	};
+
+	const handleSubscribeEmailChange = (
+		e: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		setSubscribeEmail(e.target.value);
+		setSubscribeError('');
+	};
+
+	const validateEmail = (email: string): boolean => {
+		const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		return re.test(email);
+	};
+
+	const handleSubmitSubscription = async () => {
+		if (!validateEmail(subscribeEmail)) {
+			setSubscribeError('이메일 형식이 올바르지 않습니다.');
+			return;
+		}
+		setSubscribeStatus('submitting');
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/subscribers/${encodeURIComponent(subscribeEmail)}`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				},
+			);
+			if (response.status === 409) {
+				setSubscribeStatus('error');
+				setSubscribeError('이미 구독자입니다.');
+				return;
+			}
+			if (response.status === 400) {
+				setSubscribeStatus('error');
+				setSubscribeError('이메일 형식이 올바르지 않습니다.');
+				return;
+			}
+			if (!response.ok) {
+				throw new Error('Subscription failed');
+			}
+			setSubscribeStatus('success');
+			setTimeout(() => {
+				handleSubscribeModalClose();
+			}, 2000);
+		} catch (error) {
+			console.error('구독 요청 실패:', error);
+			setSubscribeStatus('error');
+			setSubscribeError('구독 요청이 실패했습니다. 다시 시도해주세요.');
+		}
+	};
+
 	return (
-		<div className="page-container">
-			<Header />
-			<div className="main-content">
-				<div
-					className="card-carousel"
-					ref={containerRef}
-					onTouchStart={onTouchStart}
-					onTouchEnd={onTouchEnd}
-				>
-					{currentData && (
-						<div className={getCardClass()}>
-							<div
-								className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
-								onClick={canNavigatePrev ? handlePrevCard : undefined}
-							></div>
-							<Card {...currentData} />
-							<div
-								className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
-								onClick={
-									canNavigateNext
-										? () => {
-												const nextDate = getAdjacentDate(
-													'next',
-													currentDateRef.current,
-												);
-												if (!isFutureDate(nextDate)) {
-													handleNextCard();
+		<>
+			{showCTA && (
+				<SubscribeCTAAlert
+					onSubscribe={handleCTASubscribe}
+					onClose={handleCTAClose}
+				/>
+			)}
+			<SubscriptionModal
+				isOpen={showSubscribeModal}
+				email={subscribeEmail}
+				status={subscribeStatus}
+				errorMessage={subscribeError}
+				onEmailChange={handleSubscribeEmailChange}
+				onSubmit={handleSubmitSubscription}
+				onClose={handleSubscribeModalClose}
+			/>
+			<div className="page-container">
+				<Header />
+				<div className="main-content">
+					<div
+						className="card-carousel"
+						ref={containerRef}
+						onTouchStart={onTouchStart}
+						onTouchEnd={onTouchEnd}
+					>
+						{currentData && (
+							<div className={getCardClass()}>
+								<div
+									className={`scroll-indicator scroll-up ${!canNavigatePrev ? 'disabled' : ''}`}
+									onClick={canNavigatePrev ? handlePrevCard : undefined}
+								></div>
+								<Card {...currentData} />
+								<div
+									className={`scroll-indicator scroll-down ${!canNavigateNext ? 'disabled' : ''}`}
+									onClick={
+										canNavigateNext
+											? () => {
+													const nextDate = getAdjacentDate(
+														'next',
+														currentDateRef.current,
+													);
+													if (!isFutureDate(nextDate)) {
+														handleNextCard();
+													}
 												}
-											}
-										: undefined
-								}
-							></div>
-						</div>
-					)}
-					{isLoading && <div className="loading">Loading...</div>}
-					{error && <div className="error">{error}</div>}
+											: undefined
+									}
+								></div>
+							</div>
+						)}
+						{isLoading && <div className="loading">Loading...</div>}
+						{error && <div className="error">{error}</div>}
+					</div>
 				</div>
+				<Footer />
 			</div>
-			<Footer />
-		</div>
+		</>
 	);
 };
 
